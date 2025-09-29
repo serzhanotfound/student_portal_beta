@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "cookie": "^1.0.2",
+    "crypto": "^1.0.1",
+    "mysql2": "^3.15.1"
+  }
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="loginBox">
+            <h2>Вход</h2>
+            <form id="loginForm">
+                <input type="text" id="loginUsername" placeholder="Логин" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit">Войти</button>
+            </form>
+            <div class="message" id="loginMessage"></div>
+            
+            <div class="switch-link">
+                <h2>Нет аккаунта?</h2> <span id="showRegister">Регистрация</span>
+            </div>
+        </div>
+
+        <div id="registrationBox">
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" id="regUsername" placeholder="Логин" required>
+                <input type="password" id="regPassword" placeholder="Пароль" required>
+                <select id="regRole" required>
+                    <option value="student">Студент</option>
+                    <option value="teacher">Учитель</option>
+                </select>
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+            <div class="message" id="regMessage"></div>
+            
+            <div class="switch-link">
+                <h2>Уже есть аккаунт?</h2> <span id="showLogin">Войти</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const loginBox = document.getElementById('loginBox');
+        const registrationBox = document.getElementById('registrationBox');
+        const showRegisterLink = document.getElementById('showRegister');
+        const showLoginLink = document.getElementById('showLogin');
+        
+        
+        function showRegistration() {
+            loginBox.style.display = 'none';
+            registrationBox.style.display = 'block';
+        }
+
+        function showLogin() {
+            registrationBox.style.display = 'none';
+            loginBox.style.display = 'block';
+        }
+
+        
+        showRegisterLink.addEventListener('click', showRegistration);
+        showLoginLink.addEventListener('click', showLogin);
+
+
+        
+
+        
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+            const role = document.getElementById("regRole").value;
+            const msgBox = document.getElementById("regMessage");
+            
+            msgBox.style.display = 'none';
+
+            const res = await fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password, role })
+            });
+
+            const data = await res.json();
+            msgBox.textContent = data.success 
+                ? "✅ Успешная регистрация! Теперь войдите." 
+                : "❌ Ошибка: " + data.error;
+            
+            msgBox.style.display = 'block';
+            
+            if (data.success) {
+                
+                setTimeout(showLogin, 2000); 
+            }
+        });
+
+        
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+            const msgBox = document.getElementById("loginMessage");
+            
+            msgBox.style.display = 'none';
+
+            const res = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            
+            msgBox.style.display = 'block';
+
+            if (data.success) {
+                msgBox.textContent = "✅ Вход выполнен! Проверяем профиль...";
+                
+                
+                const profileRes = await fetch("/profile");
+                const profileText = await profileRes.text();
+                
+                alert("Успешная авторизация! " + profileText);
+                
+            } else {
+                msgBox.textContent = "❌ Ошибка входа: " + data.error;
+            }
+        });
+    </script>
+</body>
+</html>

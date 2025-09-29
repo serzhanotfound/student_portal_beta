@@ -1,0 +1,63 @@
+ body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: url(./FreEDU.jpg);
+        }
+        .container {
+            width: 350px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e0f7fa;
+            color: #007bff;
+            display: none; 
+        }
+        
+        .switch-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .switch-link span {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        #registrationBox {
+            display: none;
+        }
+        h2 {
+            color: #c9d6d6;
+        }
