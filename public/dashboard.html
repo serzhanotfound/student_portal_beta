@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница | Портал</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f9; display: flex; }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #8b0000;
+            color: white;
+            min-height: 100vh;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            position: fixed;
+        }
+        .user-info {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .user-icon {
+            font-size: 50px;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+        .user-info p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        .menu-item:hover {
+            background-color: #a52a2a;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+        .main-content h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="user-info">
+            <div class="user-icon">👤</div>
+            <p id="menuUsername">username</p>
+            <p id="menuRole">role</p>
+        </div>
+        
+        <a href="#" class="menu-item" id="profileLink">Profile</a>
+        <a href="#" class="menu-item">Courses</a>
+        <a href="#" class="menu-item" id="scheduleLink">Schedule</a>
+        <a href="#" class="menu-item">Results</a>
+        <a href="#" class="menu-item" id="logoutLink">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h1>Добро пожаловать на портал!</h1>
+        <p>Ваш контент будет загружен здесь.</p>
+        <div id="contentArea"></div>
+    </div>
+
+    <script>
+ async function loadContent(url) {
+        // Используем существующий контейнер!
+        const contentArea = document.getElementById('contentArea');
+        contentArea.innerHTML = '<h1>Загрузка...</h1>';
+        
+        // Очищаем предыдущие обработчики событий (если они были)
+        contentArea.onclick = null; 
+        
+        try {
+            const res = await fetch(url);
+            if (res.status === 200) {
+                const html = await res.text();
+                
+                contentArea.innerHTML = html;
+                
+            } else {
+                contentArea.innerHTML = `<h1>Ошибка загрузки контента (${res.status})!</h1>`;
+            }
+        } catch (error) {
+            contentArea.innerHTML = '<h1>Ошибка сети! Не удалось загрузить контент.</h1>';
+            console.error('Content load error:', error);
+        }
+    }
+
+   document.getElementById('scheduleLink').addEventListener('click', (e) => {
+    // Проверяем, что нажата именно "Schedule" (хотя ID уже гарантирует это)
+    if (e.target.textContent === 'Schedule') { 
+        e.preventDefault();
+        
+        // Читаем роль из элемента, заполненного loadProfile
+        const currentRole = document.getElementById('menuRole').textContent;
+        
+        // Определяем URL контента
+        let urlToLoad = '';
+        if (currentRole === 'teacher') {
+            urlToLoad = '/teacher_schedule.html';
+        } else if (currentRole === 'student') {
+            urlToLoad = '/student_schedule.html'; // Будет реализовано далее
+        } else {
+            document.getElementById('contentArea').innerHTML = '<h1>Нет доступа к расписанию.</h1>';
+            return;
+        }
+        
+        loadContent(urlToLoad);
+    }
+});
+
+async function loadProfile() {
+    try {
+        const profileRes = await fetch("/profile");
+        
+        if (profileRes.status === 401) {
+            // Если сервер вернул 401, перенаправляем
+            window.location.href = '/'; 
+            return;
+        }
+
+        const userData = await profileRes.json();
+        
+        document.getElementById('menuUsername').textContent = userData.username;
+        document.getElementById('menuRole').textContent = userData.role;
+
+        document.getElementById('contentArea').textContent = `Ваша роль: ${userData.role}`;
+
+    } catch (error) {
+        console.error("Ошибка загрузки профиля:", error);
+        window.location.href = '/'; 
+    }
+}
+
+ document.getElementById('logoutLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            await fetch('/logout', { method: 'POST' });
+            
+            window.location.href = '/'; 
+        });
+
+        loadProfile();
+async function saveSchedule() {
+    // Вся логика, которую мы писали, остаётся здесь. 
+    // Она берет элементы из DOM, которые были загружены в contentArea.
+    const groupName = document.getElementById('groupSelector').value;
+    const dayOfWeek = document.getElementById('daySelector').value;
+    const msgBox = document.getElementById('scheduleMessage');
+    const tableBody = document.getElementById('scheduleInputTable').querySelector('tbody');
+    const rows = tableBody.querySelectorAll('tr');
+
+    const lessons = [];
+
+    rows.forEach(row => {
+        const timeSlot = row.getAttribute('data-time');
+        const course = row.querySelector('input[data-field="course"]').value.trim();
+        const classroom = row.querySelector('input[data-field="classroom"]').value.trim();
+        
+        if (course || classroom) {
+            lessons.push({ time_slot: timeSlot, 
+                course: course || '', 
+                classroom: classroom || '' });
+        }
+    });
+
+    if (lessons.length === 0) {
+        msgBox.textContent = '❌ Заполните хотя бы одно поле для сохранения.';
+        msgBox.style.color = 'red';
+        return;
+    }
+
+    try {
+        // ... (логика fetch, как раньше)
+        msgBox.textContent = '⏳ Сохранение...';
+        msgBox.style.color = 'orange';
+
+        const res = await fetch("/api/save_schedule", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ groupName, dayOfWeek, lessons })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+            msgBox.textContent = `✅ Расписание для ${groupName} (${dayOfWeek}) успешно сохранено!`;
+            msgBox.style.color = 'green';
+        } else {
+            msgBox.textContent = '❌ Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка.');
+            msgBox.style.color = 'red';
+        }
+
+    } catch (error) {
+        // ...
+        console.error("Save schedule error:", error);
+        msgBox.textContent = '❌ Ошибка сети при сохранении.';
+        msgBox.style.color = 'red';
+    }
+}
+
+async function loadTeacherSchedule() {
+    // Читаем текущие выбранные значения
+    const group = document.getElementById('groupSelector').value;
+    const day = document.getElementById('daySelector').value;
+    const msgBox = document.getElementById('scheduleMessage');
+    
+    // Очищаем все поля ввода перед загрузкой (чтобы убрать старые данные)
+    const tableBody = document.getElementById('scheduleInputTable').querySelector('tbody');
+    tableBody.querySelectorAll('input').forEach(input => input.value = '');
+
+    if (!group || !day) {
+        msgBox.textContent = 'Выберите группу и день недели для загрузки.';
+        msgBox.style.color = 'blue';
+        return;
+    }
+    
+    msgBox.textContent = `⏳ Загрузка расписания для ${group} (${day})...`;
+    msgBox.style.color = 'orange';
+
+    try {
+        // Отправляем GET-запрос с выбранными параметрами
+        // Мы используем /api/get_schedule?group=X, как вы настроили в server.js
+        const res = await fetch(`/api/get_schedule?group=${group}&day=${day}`);
+        const data = await res.json();
+        
+        if (data.success && data.schedule && data.schedule.length > 0) {
+            
+            // Заполняем форму данными (schedule - это массив уроков)
+            data.schedule.forEach(lesson => {
+                const row = tableBody.querySelector(`tr[data-time="${lesson.time_slot}"]`);
+                if (row) {
+                    // Заполняем предмет и аудиторию
+                    row.querySelector('input[data-field="course"]').value = lesson.course;
+                    row.querySelector('input[data-field="classroom"]').value = lesson.classroom;
+                    // Преподавателя заполнять не нужно, т.к. его ID берется из сессии при сохранении
+                }
+            });
+            
+            msgBox.textContent = `✅ Расписание для ${group} (${day}) загружено. Можно редактировать.`;
+            msgBox.style.color = 'green';
+            
+        } else {
+            msgBox.textContent = `⚠️ Расписание для ${group} (${day}) не найдено. Можно составить новое.`;
+            msgBox.style.color = 'orange';
+        }
+
+    } catch (error) {
+        console.error('Ошибка загрузки расписания для учителя:', error);
+        msgBox.textContent = '❌ Ошибка сети при загрузке расписания.';
+        msgBox.style.color = 'red';
+    }
+}
+
+// Функция для привязки JS-обработчиков к элементам, которые только что загружены
+function attachScheduleHandlers(role) {
+     if (role === 'teacher') {
+        const saveBtn = document.getElementById('saveScheduleBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', saveSchedule);
+        }
+        
+        // ВАЖНО: Добавьте обработчики для загрузки данных в форму учителя
+        document.getElementById('groupSelector')?.addEventListener('change', loadTeacherSchedule);
+        document.getElementById('daySelector')?.addEventListener('change', loadTeacherSchedule);
+        
+        // Запускаем загрузку данных для учителя при первом открытии:
+        loadTeacherSchedule(); 
+
+    } else if (role === 'student') {
+        // Вызываем функцию для студента
+        loadStudentSchedule();
+    }
+}
+
+
+// Модифицированная loadContent
+async function loadContent(url, role) {
+    const contentArea = document.getElementById('contentArea');
+    contentArea.innerHTML = '<h1>Загрузка...</h1>';
+    
+    try {
+        const res = await fetch(url);
+        if (res.status === 200) {
+            const html = await res.text();
+            
+            // Просто вставляем HTML-контент (теперь он без скриптов)
+            contentArea.innerHTML = html;
+            
+            // Запускаем обработчики (которые вызовут нужные функции, объявленные выше)
+            attachScheduleHandlers(role); 
+            
+        } else {
+            contentArea.innerHTML = `<h1>Ошибка загрузки контента (${res.status})!</h1>`;
+        }
+    } catch (error) {
+        contentArea.innerHTML = '<h1>Ошибка сети! Не удалось загрузить контент.</h1>';
+        console.error('Content load error:', error);
+    }
+}
+
+
+// ОБНОВЛЕННЫЙ ОБРАБОТЧИК МЕНЮ (передаем роль в loadContent)
+document.getElementById('scheduleLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    const currentRole = document.getElementById('menuRole').textContent;
+    
+    let urlToLoad = '';
+    if (currentRole === 'teacher') {
+        urlToLoad = '/teacher_schedule.html';
+    } else if (currentRole === 'student') {
+        urlToLoad = '/student_schedule.html';
+    } else {
+        document.getElementById('contentArea').innerHTML = '<h1>Нет доступа к расписанию.</h1>';
+        return;
+    }
+    
+    // Передаем текущую роль в loadContent
+    loadContent(urlToLoad, currentRole); 
+});
+
+async function loadStudentSchedule() {
+            const msgBox = document.getElementById('scheduleMessage');
+            const tableBody = document.getElementById('scheduleTableBody');
+            
+            tableBody.innerHTML = ''; // Очищаем таблицу
+
+            console.log("--- 1. функция loadstudentSchedule запущена ---");
+
+            try {
+
+                console.log("--- 2. Отправка fetch запроса... ---");
+                // Запрос на сервер. Сервер сам определит группу студента.
+                const res = await fetch("/api/get_schedule");
+
+                console.log("--- 3. Fetch вернул ответ! ---");
+                const data = await res.json();
+
+                console.log("Schedule response:", data);
+                
+                if (data.success && data.schedule && data.schedule.length > 0) {
+                    msgBox.textContent = `Расписание для группы: ${data.group}`;
+                    msgBox.style.color = 'green';
+                    document.getElementById('scheduleTitle').textContent = `Ваше Расписание (${data.group})`;
+                    
+                    let currentDay = '';
+                    
+                    data.schedule.forEach(lesson => {
+                        // Добавляем заголовок дня недели
+                        if (lesson.day_of_week !== currentDay) {
+                            currentDay = lesson.day_of_week;
+                            const dayRow = document.createElement('tr');
+                            dayRow.innerHTML = `<td colspan="4" class="day-header">${currentDay}</td>`;
+                            tableBody.appendChild(dayRow);
+                        }
+                        
+                        // Добавляем строку урока
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${lesson.time_slot}</td>
+                            <td style="text-align: left;">${lesson.course}</td>
+                            <td>${lesson.classroom}</td>
+                            <td>${lesson.teacher_name}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                } else {
+                    msgBox.textContent = data.error || `Расписание для группы ${data.group || 'Вашей группы'} пока не составлено.`;
+                    msgBox.style.color = 'red';
+                }
+
+            } catch (error) {
+                console.error("Schedule load error:", error);
+                msgBox.textContent = '❌ Ошибка сети при загрузке расписания.';
+                msgBox.style.color = 'red';
+            }
+        };
+
+    </script>
+</body>
+</html>

@@ -32,7 +32,7 @@
                 </select>
                 <button type="submit">Зарегистрироваться</button>
             </form>
-            <div class="message" id="regMessage"></div>
+            <div class="message" id="regMessage"></div> 
             
             <div class="switch-link">
                 <h2>Уже есть аккаунт?</h2> <span id="showLogin">Войти</span>
@@ -57,14 +57,8 @@
             registrationBox.style.display = 'none';
             loginBox.style.display = 'block';
         }
-
-        
         showRegisterLink.addEventListener('click', showRegistration);
         showLoginLink.addEventListener('click', showLogin);
-
-
-        
-
         
         document.getElementById("registerForm").addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -114,14 +108,9 @@
             msgBox.style.display = 'block';
 
             if (data.success) {
-                msgBox.textContent = "✅ Вход выполнен! Проверяем профиль...";
+                msgBox.textContent = "✅ Вход выполнен! Перенаправляем. . . ";
                 
-                
-                const profileRes = await fetch("/profile");
-                const profileText = await profileRes.text();
-                
-                alert("Успешная авторизация! " + profileText);
-                
+                window.location.href = '/dashboard';
             } else {
                 msgBox.textContent = "❌ Ошибка входа: " + data.error;
             }

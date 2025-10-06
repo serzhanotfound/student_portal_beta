@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Расписание Студента</title>
+    <style>
+        .schedule-view-container {
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #scheduleOutputTable th, #scheduleOutputTable td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .day-header {
+            background-color: #a52a2a; /* Коричневый, для выделения дня */
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="schedule-view-container">
+        <h2 id="scheduleTitle">Расписание</h2>
+        <div id="scheduleMessage" style="margin-bottom: 15px; color: blue;">Загрузка расписания...</div>
+
+        <table id="scheduleOutputTable" border="1" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Время</th>
+                    <th style="width: 40%;">Предмет</th>
+                    <th style="width: 30%;">Аудитория</th>
+                    <th style="width: 15%;">Преподаватель</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        
+    </script>
+</body>
+</html>
