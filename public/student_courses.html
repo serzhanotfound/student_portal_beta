@@ -1,0 +1,32 @@
+<div class="content-box">
+    <h2 id="coursesTitle">Ваши Курсы</h2>
+    
+    <div style="margin-bottom: 15px;">
+        <label for="semesterSelector">Выберите Семестр:</label>
+        <select id="semesterSelector">
+            <option value="1">1 Семестр</option>
+            <option value="2">2 Семестр</option>
+            <option value="3">3 Семестр</option>
+            <option value="4">4 Семестр</option>
+            <option value="5">5 Семестр</option>
+            <option value="6">6 Семестр</option>
+            <option value="7">7 Семестр</option>
+            <option value="8">8 Семестр</option>
+        </select>
+    </div>
+
+    <p id="coursesMessage" style="color: blue;">Загрузка курсов...</p>
+
+    <table id="coursesTable" border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Курс</th>
+                <th>Преподаватель</th>
+                <th>Кредиты</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody id="coursesTableBody">
+        </tbody>
+    </table>
+</div>

@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const pool = require('./db');
-module.exports = { register, login, checkSession, logout, saveSchedule, getSchedule };
+module.exports = { register, login, checkSession, logout, 
+    saveSchedule, getSchedule, getStudentCourses, getTeacherCourses,  getAllCourses, saveCourse, deleteCourse };
 
 function hashPassword(password) {
     return crypto.createHash("sha256").update(password).digest("hex");
@@ -162,5 +163,113 @@ async function getSchedule(groupName, dayOfWeek = null) {
     } catch (error) {
         console.error("Error fetching schedule:", error);
         return null;
+    }
+}
+
+async function getStudentCourses(groupName, semester) { 
+    if (!groupName || !semester) return [];
+
+    try {
+        const query = `
+            SELECT DISTINCT
+                c.name AS course_name,
+                u.username AS teacher_name,
+                c.credits,
+                c.description
+            FROM 
+                courses c
+            JOIN 
+                users u ON c.teacher_id = u.id 
+            WHERE 
+                c.group_name = ? AND c.semester = ?; 
+        `;
+        const [rows] = await pool.query(query, [groupName, semester]); // Используем оба параметра
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Функция для получения курсов, которые преподает учитель
+async function getTeacherCourses(teacherId) {
+    try {
+        const query = `
+            SELECT 
+                c.name AS course_name,
+                c.credits,
+                c.description,
+                c.group_name,          
+                c.semester
+            FROM 
+                courses c
+            WHERE 
+                c.teacher_id = ?
+            ORDER BY c.group_name, c.semester;
+        `;
+        const [rows] = await pool.query(query, [teacherId]);
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Функция для получения ВСЕХ курсов (для Администратора)
+async function getAllCourses() {
+    try {
+        const query = `
+            SELECT 
+                c.id,
+                c.name,
+                c.description,
+                c.credits,
+                c.teacher_id
+            FROM 
+                courses c
+            ORDER BY c.name;
+        `;
+        const [rows] = await pool.query(query);
+        return rows;
+    } catch (error) {
+        console.error("Error fetching all courses:", error);
+        throw error;
+    }
+}
+
+// Функция для сохранения (добавления/обновления) курса
+async function saveCourse(id, name, description, credits, teacher_id, group_name, semester) { 
+    try {
+        if (id) {
+            const query = `
+                UPDATE courses 
+                SET name = ?, description = ?, credits = ?, teacher_id = ?, group_name = ?, semester = ? 
+                WHERE id = ?;
+            `;
+            // Обновите массив параметров
+            await pool.query(query, [name, description, credits, teacher_id, group_name, semester, id]);
+        } else {
+            // ДОБАВЛЕНИЕ НОВОГО
+            const query = `
+                INSERT INTO courses (name, description, credits, teacher_id, group_name, semester)
+                VALUES (?, ?, ?, ?, ?, ?);
+            `;
+            // Обновите массив параметров
+            await pool.query(query, [name, description, credits, teacher_id, group_name, semester]);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error("Error saving course:", error);
+        return { success: false, error: "Ошибка базы данных при сохранении курса." };
+    }
+}
+
+// Функция для удаления курса
+async function deleteCourse(id) {
+    try {
+        const query = `DELETE FROM courses WHERE id = ?;`;
+        await pool.query(query, [id]);
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting course:", error);
+        return { success: false, error: "Ошибка базы данных при удалении курса." };
     }
 }

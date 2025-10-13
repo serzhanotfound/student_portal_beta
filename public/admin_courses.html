@@ -1,0 +1,46 @@
+<div class="content-box">
+    <h2 id="coursesTitle">Управление Курсами (Администратор)</h2>
+    
+    <div id="courseFormContainer" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+    <h3>Добавить/Изменить Курс</h3>
+    <input type="hidden" id="courseId" value="">
+    
+    <label for="courseName">Название курса:</label>
+    <input type="text" id="courseName" placeholder="Программирование 1" required><br><br>
+
+    <label for="courseDescription">Описание:</label>
+    <input type="text" id="courseDescription" placeholder="Краткое описание"><br><br>
+
+    <label for="courseCredits">Кредиты:</label>
+    <input type="number" id="courseCredits" placeholder="3" required><br><br>
+    
+    <label for="courseGroup">Группа:</label>
+    <input type="text" id="courseGroup" placeholder="Логистика" required><br><br>
+    
+    <label for="courseSemester">Семестр (1-8):</label>
+    <input type="number" id="courseSemester" min="1" max="8" placeholder="1" required><br><br>
+
+    <label for="courseTeacherId">ID Преподавателя:</label>
+    <input type="number" id="courseTeacherId" placeholder="33" required><br><br>
+
+    <button id="saveCourseBtn">Сохранить Курс</button>
+    <button id="cancelEditBtn" style="display:none;">Отмена</button>
+    <p id="formMessage" style="color: red; margin-top: 10px;"></p>
+</div>
+
+    <p id="coursesMessage" style="color: blue;">Загрузка курсов...</p>
+
+     <table class="data-table" id="coursesTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Курс</th>
+                <th>Преподаватель ID</th>
+                <th>Группа</th>       <th>Семестр</th>     <th>Кредиты</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="coursesTableBody">
+            </tbody>
+    </table>
+</div>

@@ -61,7 +61,7 @@
         </div>
         
         <a href="#" class="menu-item" id="profileLink">Profile</a>
-        <a href="#" class="menu-item">Courses</a>
+        <a href="#" class="menu-item" id="courseLink">Courses</a>
         <a href="#" class="menu-item" id="scheduleLink">Schedule</a>
         <a href="#" class="menu-item">Results</a>
         <a href="#" class="menu-item" id="logoutLink">Logout</a>
@@ -74,52 +74,8 @@
     </div>
 
     <script>
- async function loadContent(url) {
-        // Используем существующий контейнер!
-        const contentArea = document.getElementById('contentArea');
-        contentArea.innerHTML = '<h1>Загрузка...</h1>';
-        
-        // Очищаем предыдущие обработчики событий (если они были)
-        contentArea.onclick = null; 
-        
-        try {
-            const res = await fetch(url);
-            if (res.status === 200) {
-                const html = await res.text();
-                
-                contentArea.innerHTML = html;
-                
-            } else {
-                contentArea.innerHTML = `<h1>Ошибка загрузки контента (${res.status})!</h1>`;
-            }
-        } catch (error) {
-            contentArea.innerHTML = '<h1>Ошибка сети! Не удалось загрузить контент.</h1>';
-            console.error('Content load error:', error);
-        }
-    }
 
-   document.getElementById('scheduleLink').addEventListener('click', (e) => {
-    // Проверяем, что нажата именно "Schedule" (хотя ID уже гарантирует это)
-    if (e.target.textContent === 'Schedule') { 
-        e.preventDefault();
-        
-        // Читаем роль из элемента, заполненного loadProfile
-        const currentRole = document.getElementById('menuRole').textContent;
-        
-        // Определяем URL контента
-        let urlToLoad = '';
-        if (currentRole === 'teacher') {
-            urlToLoad = '/teacher_schedule.html';
-        } else if (currentRole === 'student') {
-            urlToLoad = '/student_schedule.html'; // Будет реализовано далее
-        } else {
-            document.getElementById('contentArea').innerHTML = '<h1>Нет доступа к расписанию.</h1>';
-            return;
-        }
-        
-        loadContent(urlToLoad);
-    }
-});
+let userRole = '';
 
 async function loadProfile() {
     try {
@@ -135,7 +91,7 @@ async function loadProfile() {
         
         document.getElementById('menuUsername').textContent = userData.username;
         document.getElementById('menuRole').textContent = userData.role;
-
+        userRole = userData.role;
         document.getElementById('contentArea').textContent = `Ваша роль: ${userData.role}`;
 
     } catch (error) {
@@ -264,71 +220,243 @@ async function loadTeacherSchedule() {
     }
 }
 
-// Функция для привязки JS-обработчиков к элементам, которые только что загружены
-function attachScheduleHandlers(role) {
-     if (role === 'teacher') {
-        const saveBtn = document.getElementById('saveScheduleBtn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', saveSchedule);
-        }
-        
-        // ВАЖНО: Добавьте обработчики для загрузки данных в форму учителя
-        document.getElementById('groupSelector')?.addEventListener('change', loadTeacherSchedule);
-        document.getElementById('daySelector')?.addEventListener('change', loadTeacherSchedule);
-        
-        // Запускаем загрузку данных для учителя при первом открытии:
-        loadTeacherSchedule(); 
-
-    } else if (role === 'student') {
-        // Вызываем функцию для студента
-        loadStudentSchedule();
-    }
-}
-
-
-// Модифицированная loadContent
-async function loadContent(url, role) {
-    const contentArea = document.getElementById('contentArea');
-    contentArea.innerHTML = '<h1>Загрузка...</h1>';
+// Загрузка всех курсов для Администратора
+async function loadAdminCourses() {
+    const tableBody = document.getElementById('coursesTableBody');
+    const msgBox = document.getElementById('coursesMessage');
+    const saveBtn = document.getElementById('saveCourseBtn');
     
+    if (saveBtn) {
+        saveBtn.removeEventListener('click', saveCourse); // Удаляем старый, если есть
+        saveBtn.addEventListener('click', saveCourse);
+    }
+    document.getElementById('cancelEditBtn').addEventListener('click', resetCourseForm);
+
+    if (tableBody) tableBody.innerHTML = '';
+    if (msgBox) msgBox.textContent = 'Загрузка курсов...';
+
     try {
-        const res = await fetch(url);
-        if (res.status === 200) {
-            const html = await res.text();
-            
-            // Просто вставляем HTML-контент (теперь он без скриптов)
-            contentArea.innerHTML = html;
-            
-            // Запускаем обработчики (которые вызовут нужные функции, объявленные выше)
-            attachScheduleHandlers(role); 
-            
-        } else {
-            contentArea.innerHTML = `<h1>Ошибка загрузки контента (${res.status})!</h1>`;
+        // Мы будем использовать ТОТ ЖЕ API, что и для преподавателя, но БЕЗ фильтра по teacher_id
+        const res = await fetch("/api/get_all_courses");
+        const data = await res.json();
+        
+        if (!data.success || !data.courses || data.courses.length === 0) {
+            if (msgBox) msgBox.textContent = 'Нет курсов для отображения.';
+            return;
         }
+
+        if (msgBox) msgBox.textContent = 'Всего курсов: ' + data.courses.length;
+        
+        data.courses.forEach(course => {
+            const row = tableBody.insertRow();
+            row.insertCell().textContent = course.id;
+            row.insertCell().textContent = course.name;
+            row.insertCell().textContent = course.group_name; 
+            row.insertCell().textContent = course.semester;  
+            row.insertCell().textContent = course.teacher_id;
+            row.insertCell().textContent = course.credits;
+            
+            // Кнопки действий
+            const actionsCell = row.insertCell();
+            
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Изменить';
+            editBtn.onclick = () => editCourse(course);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Удалить';
+            deleteBtn.onclick = () => deleteCourse(course.id);
+            
+            actionsCell.appendChild(editBtn);
+            actionsCell.appendChild(deleteBtn);
+        });
+
     } catch (error) {
-        contentArea.innerHTML = '<h1>Ошибка сети! Не удалось загрузить контент.</h1>';
-        console.error('Content load error:', error);
+        console.error("Error loading courses for Admin:", error);
+        if (msgBox) msgBox.textContent = 'Ошибка сети! Не удалось загрузить курсы.';
     }
 }
 
+// Функция для привязки JS-обработчиков к элементам, которые только что загружены
+function attachContentHandlers(role) {
+       if (document.getElementById('groupSelector') || document.getElementById('scheduleTableBody')) {
+        
+        if (role === 'teacher') {
+            const saveBtn = document.getElementById('saveScheduleBtn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveSchedule);
+            }
+            
+            document.getElementById('groupSelector')?.addEventListener('change', loadTeacherSchedule);
+            document.getElementById('daySelector')?.addEventListener('change', loadTeacherSchedule);
+            
+            loadTeacherSchedule(); 
 
-// ОБНОВЛЕННЫЙ ОБРАБОТЧИК МЕНЮ (передаем роль в loadContent)
-document.getElementById('scheduleLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    const currentRole = document.getElementById('menuRole').textContent;
+        } else if (role === 'student') {
+            loadStudentSchedule();
+        }
+    }
+
+    if (document.getElementById('coursesTableBody')) {
+         
+        if (role === 'admin') {
+            loadAdminCourses(); // <-для Администратора
+        } else {
+            loadCourses(); // <-для Студентов/Преподавателей
+
+             if (role === 'student') {
+                const selector = document.getElementById('semesterSelector');
+                    if (selector) {
+                    selector.removeEventListener('change', loadCourses);
+                    selector.addEventListener('change', loadCourses); 
+                }
+                }
+        }
+    }
+}
+
+// Вспомогательная функция для сброса формы
+function resetCourseForm() {
+    document.getElementById('courseId').value = '';
+    document.getElementById('courseName').value = '';
+    document.getElementById('courseDescription').value = '';
+    document.getElementById('courseCredits').value = '';
+    document.getElementById('courseTeacherId').value = '';
+      document.getElementById('courseGroup').value = '';
+    document.getElementById('courseSemester').value = '';
+    document.getElementById('saveCourseBtn').textContent = 'Сохранить Курс';
+    document.getElementById('formMessage').textContent = '';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+// Вспомогательная функция для заполнения формы данными курса
+function editCourse(course) {
+    document.getElementById('courseId').value = course.id;
+    document.getElementById('courseName').value = course.name;
+    document.getElementById('courseDescription').value = course.description;
+    document.getElementById('courseCredits').value = course.credits;
+    document.getElementById('courseTeacherId').value = course.teacher_id;
+    document.getElementById('courseGroup').value = course.group_name;
+    document.getElementById('courseSemester').value = course.semester;
     
-    let urlToLoad = '';
-    if (currentRole === 'teacher') {
-        urlToLoad = '/teacher_schedule.html';
-    } else if (currentRole === 'student') {
-        urlToLoad = '/student_schedule.html';
-    } else {
-        document.getElementById('contentArea').innerHTML = '<h1>Нет доступа к расписанию.</h1>';
+    document.getElementById('saveCourseBtn').textContent = 'Обновить Курс';
+    document.getElementById('cancelEditBtn').style.display = 'inline';
+    document.getElementById('formMessage').textContent = 'Редактирование курса: ' + course.name;
+}
+
+// Отправка данных курса на сервер (добавление/обновление)
+async function saveCourse() {
+    const courseId = document.getElementById('courseId').value || null;
+    const name = document.getElementById('courseName').value.trim();
+    const group_name = document.getElementById('courseGroup').value.trim(); 
+    const semester = parseInt(document.getElementById('courseSemester').value.trim()); 
+
+    const description = document.getElementById('courseDescription').value.trim();
+    const credits = parseInt(document.getElementById('courseCredits').value.trim());
+    const teacher_id = parseInt(document.getElementById('courseTeacherId').value.trim());
+    const msgBox = document.getElementById('formMessage');
+
+    if (!name || isNaN(credits) || isNaN(teacher_id) || !group_name || isNaN(semester)) {
+        msgBox.textContent = '❌ Заполните все поля корректно.';
         return;
     }
+
+    try {
+        msgBox.textContent = '⏳ Сохранение...';
+        const res = await fetch("/api/save_course", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: courseId, name, description, credits, teacher_id, group_name, semester })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            msgBox.textContent = `✅ Курс успешно ${courseId ? 'обновлен' : 'добавлен'}!`;
+            resetCourseForm();
+            loadAdminCourses(); // Перезагружаем список
+        } else {
+            msgBox.textContent = '❌ Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка.');
+        }
+
+    } catch (error) {
+        console.error("Save course error:", error);
+        msgBox.textContent = '❌ Ошибка сети при сохранении.';
+    }
+}
+
+// Удаление курса
+async function deleteCourse(id) {
+    if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
     
-    // Передаем текущую роль в loadContent
-    loadContent(urlToLoad, currentRole); 
+    const msgBox = document.getElementById('coursesMessage');
+    msgBox.textContent = '⏳ Удаление...';
+
+    try {
+        const res = await fetch("/api/delete_course", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            msgBox.textContent = `✅ Курс ID ${id} успешно удален.`;
+            loadAdminCourses(); // Перезагружаем список
+        } else {
+            msgBox.textContent = '❌ Ошибка удаления: ' + (data.error || 'Неизвестная ошибка.');
+        }
+
+    } catch (error) {
+        console.error("Delete course error:", error);
+        msgBox.textContent = '❌ Ошибка сети при удалении.';
+    }
+}
+
+async function loadContent(path) {
+     let targetFile = '';
+    
+    // 1. Определение статического файла на основе роли и пути
+    if (path === '/schedule') {
+        targetFile = userRole === 'teacher' ? 'teacher_schedule.html' : 'student_schedule.html';
+    } 
+    else if (path === '/courses') {
+        if (userRole === 'admin') {
+            targetFile = 'admin_courses.html';}
+        else{
+        targetFile = userRole === 'teacher' ? 'teacher_courses.html' : 'student_courses.html';}
+    } else {
+        console.error('Unknown path:', path);
+        document.getElementById('contentArea').innerHTML = '<p style="color: red;">Неизвестный пункт меню.</p>';
+        return;
+    }
+
+    // 2. Выполнение fetch запроса к статическому файлу
+    try {
+        const res = await fetch(targetFile); // Запрашиваем файл напрямую
+        if (!res.ok) throw new Error(`Failed to load ${targetFile} (${res.status})`);
+        
+        const html = await res.text();
+        
+        // 3. Вставка и запуск обработчиков
+        document.getElementById('contentArea').innerHTML = html; 
+        attachContentHandlers(userRole);
+        
+    } catch (error) {
+        console.error('Error loading content:', error);
+        document.getElementById('contentArea').innerHTML = '<p style="color: red;">Ошибка загрузки контента: ' + error.message + '</p>';
+    }
+}
+
+document.getElementById('scheduleLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    loadContent('/schedule');
+});
+
+document.getElementById('courseLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    loadContent('/courses');
 });
 
 async function loadStudentSchedule() {
@@ -389,6 +517,63 @@ async function loadStudentSchedule() {
             }
         };
 
+async function loadCourses() {
+    const tableBody = document.getElementById('coursesTableBody');
+    const msgBox = document.getElementById('coursesMessage');
+    
+    const role = userRole;
+
+    // Очищаем и показываем загрузку
+    if (tableBody) tableBody.innerHTML = ''; 
+    if (msgBox) msgBox.textContent = 'Загрузка данных...';
+
+    try {
+        let apiUrl = "/api/get_courses"
+
+        if(role === 'student') {
+            const semesterSelector = document.getElementById('semesterSelector');
+            const selectedSemester = semesterSelector ? semesterSelector.value : '1'; // По умолчанию 1
+            
+            apiUrl = `/api/get_courses?semester=${selectedSemester}`; 
+        }
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        
+        if (!data.success || !data.courses || data.courses.length === 0) {
+            if (msgBox) msgBox.textContent = 'Список курсов не найден.';
+            return;
+        }
+        
+
+        if (msgBox) msgBox.textContent = ''; //Очистка
+
+        // Отрисовка курсов для СТУДЕНТА
+       if (data.role === 'student') {
+                const tableBody = document.getElementById('coursesTableBody');
+                if (tableBody) tableBody.innerHTML = '';
+                
+                data.courses.forEach(course => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = course.course_name;
+                    row.insertCell().textContent = course.teacher_name; 
+                    row.insertCell().textContent = course.credits;
+                    row.insertCell().textContent = course.description || '—';
+                });
+        } else if (data.role === 'teacher') {
+            data.courses.forEach(course => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = course.course_name;
+                row.insertCell().textContent = course.credits;
+                row.insertCell().textContent = course.groups_taught || 'Нет групп';
+            });
+        }
+
+    } catch (error) {
+        console.error("Error loading courses:", error);
+        if (msgBox) msgBox.textContent = 'Ошибка сети! Не удалось загрузить курсы.';
+    }
+}
+    
     </script>
 </body>
 </html>

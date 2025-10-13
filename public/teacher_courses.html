@@ -1,0 +1,33 @@
+<style>
+    .courses-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .courses-table th, .courses-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+    }
+    .courses-table th {
+        background-color: #8b0000;
+        color: white;
+    }
+</style>
+
+<div>
+    <h1>Преподаваемые курсы</h1>
+    <p id="coursesMessage" style="color: blue;">Загрузка данных...</p>
+    
+    <table class="courses-table">
+        <thead>
+            <tr>
+                <th>Название курса</th>
+                <th>Кредиты</th>
+                <th>Группы</th>
+            </tr>
+        </thead>
+        <tbody id="coursesTableBody">
+            </tbody>
+    </table>
+</div>

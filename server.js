@@ -3,7 +3,7 @@ const url = require("url");
 const fs = require("fs");
 const path = require("path");
 const cookie = require('cookie');
-const { register, login, checkSession, logout, saveSchedule, getSchedule } = require("./auth");
+const { register, login, checkSession, logout, saveSchedule, getSchedule, getStudentCourses, getTeacherCourses, getAllCourses, deleteCourse, saveCourse} = require("./auth");
 
 const mimeTypes = {
     ".html": "text/html",
@@ -15,11 +15,11 @@ const mimeTypes = {
 
 //----------------------------------------
 
-http.createServer(async (req, res) => {``
+http.createServer(async (req, res) => {
     let parsedUrl = url.parse(req.url, true);
     let pathname = parsedUrl.pathname;
 
-    if(req.method === "POST" && pathname === "/register") {
+if(req.method === "POST" && pathname === "/register") {
         let body = "";
         req.on("data", chunk => body += chunk);
         req.on("end", async () => {
@@ -31,7 +31,7 @@ http.createServer(async (req, res) => {``
         return;
     }    
 
-     if (req.method === "POST" && pathname === "/login") {
+else if (req.method === "POST" && pathname === "/login") {
         let body = "";
         req.on("data", chunk => body += chunk);
         req.on("end", async () => {
@@ -43,7 +43,7 @@ http.createServer(async (req, res) => {``
         return;
     }
 
- if (req.method === "POST" && pathname === "/logout") {
+else if (req.method === "POST" && pathname === "/logout") {
         const cookies = cookie.parse(req.headers.cookie || '');
         const sessionId = cookies.session;
         
@@ -56,7 +56,7 @@ http.createServer(async (req, res) => {``
     }
   
 
-if (req.method === "POST" && pathname === "/api/save_schedule") {
+else if (req.method === "POST" && pathname === "/api/save_schedule") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
@@ -95,8 +95,93 @@ if (req.method === "POST" && pathname === "/api/save_schedule") {
     return;
 }
 
+else if (req.method === "POST" && pathname === "/api/save_course") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (!user || user.role !== 'admin') {
+        res.writeHead(403);
+        res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+        return;
+    }
+
+    let body = "";
+    req.on("data", chunk => body += chunk);
+    req.on("end", async () => {
+        try {
+            const data = JSON.parse(body);
+            // data содержит: id (опционально), name, description, credits, teacher_id
+            
+            const result = await saveCourse(data.id, data.name, data.description, data.credits, data.teacher_id,  data.group_name, data.semester); 
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(result));
+
+        } catch (error) {
+            console.error("Save course processing error:", error);
+            res.writeHead(500);
+            res.end(JSON.stringify({ success: false, error: "Неверный формат данных." }));
+        }
+    });
+    return;
+}
+
+else if (req.method === "POST" && pathname === "/api/delete_course") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (!user || user.role !== 'admin') {
+        res.writeHead(403);
+        res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+        return;
+    }
+
+    let body = "";
+    req.on("data", chunk => body += chunk);
+    req.on("end", async () => {
+        try {
+            const data = JSON.parse(body);
+            // data содержит: id
+            
+            const result = await deleteCourse(data.id); 
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(result));
+
+        } catch (error) {
+            console.error("Delete course processing error:", error);
+            res.writeHead(500);
+            res.end(JSON.stringify({ success: false, error: "Неверный формат данных." }));
+        }
+    });
+    return;
+}
+
 //--------------------------POST---------------------------------
-if(req.method === "GET" && pathname === "/api/get_schedule") {
+else if (req.method === "GET" && pathname === "/") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (user) {
+        // Пользователь авторизован -> Перенаправляем на /dashboard
+        res.writeHead(302, { 'Location': '/dashboard' });
+        res.end();
+        return;
+    } else {
+        // Пользователь не авторизован -> Отдаем страницу входа (login.html)
+        const filePath = path.join(__dirname, "public", "index.html");
+        if (fs.existsSync(filePath)) {
+            res.writeHead(200, { "Content-Type": "text/html" });
+            fs.createReadStream(filePath).pipe(res);
+            return;
+        }
+    }
+}
+
+else if(req.method === "GET" && pathname === "/api/get_schedule") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
@@ -140,7 +225,35 @@ if(req.method === "GET" && pathname === "/api/get_schedule") {
     }
 }
 
-    if (req.method === "GET" && pathname === "/profile") {
+else if (req.method === "GET" && pathname === "/api/get_all_courses") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (!user || user.role !== 'admin') {
+        res.writeHead(403);
+        res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+        return;
+    }
+
+    try {
+        const coursesData = await getAllCourses(); 
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            success: true, 
+            courses: coursesData,
+            role: user.role
+        }));
+
+    } catch (error) {
+        console.error("Error fetching all courses:", error);
+        res.writeHead(500);
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении всех курсов." }));
+    }
+}
+
+else if (req.method === "GET" && pathname === "/profile") {
         const  cookies = cookie.parse(req.headers.cookie || '');
         const sessionId = cookies.session;
 
@@ -155,9 +268,55 @@ if(req.method === "GET" && pathname === "/api/get_schedule") {
             return;
         }
         return;
-    }
+}
 
-    if (req.method === "GET" && pathname === "/dashboard") {
+else if (req.method === "GET" && pathname === "/api/get_courses") {
+    // Проверка сессии
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (!user) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
+        return;
+    }
+    const parsedUrl = url.parse(req.url, true);
+
+    try {
+        let coursesData;
+        let semester = parsedUrl.query.semester;
+
+        // 2. Логика по ролям
+        if (user.role === 'student') {
+            
+             if (!semester) semester = 1; 
+            coursesData = await getStudentCourses(user.group_name, parseInt(semester)); 
+
+        } else if (user.role === 'teacher') {
+            
+            coursesData = await getTeacherCourses(user.id);
+        } else {
+            res.writeHead(403);
+            res.end(JSON.stringify({ success: false, error: "Доступ запрещен для вашей роли." }));
+            return;
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            success: true, 
+            courses: coursesData,
+            role: user.role
+        }));
+
+    } catch (error) {
+        console.error("Error fetching courses:", error);
+        res.writeHead(500);
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении курсов." }));
+    }
+}
+
+else if (req.method === "GET" && pathname === "/dashboard") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
@@ -179,14 +338,19 @@ if(req.method === "GET" && pathname === "/api/get_schedule") {
         res.end();
         return;
     }
-};
+}
 
 
-
-
+else{
  // статика
-    const filePath = path.join(__dirname, "public", pathname === "/" ? "index.html" : pathname);
+    let fileToLoad = pathname.substring(1); // Удаляем ведущий '/'
+
+    if (fileToLoad === "") {
+        fileToLoad = "index.html"; 
+    } 
+    const filePath = path.join(__dirname, "public", fileToLoad);
     const ext = path.extname(filePath);
+    
     if (fs.existsSync(filePath)) {
         res.writeHead(200, { "Content-Type": mimeTypes[ext] || "text/plain" });
         fs.createReadStream(filePath).pipe(res);
@@ -195,7 +359,7 @@ if(req.method === "GET" && pathname === "/api/get_schedule") {
         res.writeHead(404);
         res.end("Not Found");
         return;
-    };
-    return;
+    } 
+}
 
 }).listen(3000, () => console.log("Server running on http://localhost:3000"));
