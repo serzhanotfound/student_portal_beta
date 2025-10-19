@@ -1,7 +1,8 @@
 const crypto = require("crypto");
 const pool = require('./db');
 module.exports = { register, login, checkSession, logout, 
-    saveSchedule, getSchedule, getStudentCourses, getTeacherCourses,  getAllCourses, saveCourse, deleteCourse };
+    saveSchedule, getSchedule, getStudentCourses, getTeacherCourses,  
+    getAllCourses, saveCourse, deleteCourse, getUserProfileData, changeUserPassword, updateAvatarPath};
 
 function hashPassword(password) {
     return crypto.createHash("sha256").update(password).digest("hex");
@@ -271,5 +272,95 @@ async function deleteCourse(id) {
     } catch (error) {
         console.error("Error deleting course:", error);
         return { success: false, error: "Ошибка базы данных при удалении курса." };
+    }
+}
+
+// STUDENT PROFILE 
+
+// Функция для получения всех данных профиля пользователя (для студента и преподавателя)
+// Функция для получения всех данных профиля пользователя (для студента и преподавателя)
+async function getUserProfileData(userId) {
+    try {
+        const query = `
+            SELECT 
+                id, 
+                username, 
+                role, 
+                group_name, 
+                full_name,          
+                major,              
+                entrance_year,
+                avatar_path       
+            FROM 
+                users 
+            WHERE 
+                id = ?;
+        `;
+        // ✅ Комментарии на кириллице лучше оставлять снаружи, в JS-коде, а не в самой SQL-строке
+        const [rows] = await pool.query(query, [userId]); 
+        
+        return rows[0] || null; 
+    } catch (error) {
+        console.error("Error fetching user profile data:", error);
+        throw error;
+    }
+}
+
+// ... (После функции getUserProfileData)
+
+/**
+ * Меняет пароль пользователя, используя существующую схему SHA256.
+ * @param {number} userId - ID пользователя.
+ * @param {string} currentPassword - Текущий (старый) пароль.
+ * @param {string} newPassword - Новый пароль.
+ * @returns {Object} Результат операции.
+ */
+async function changeUserPassword(userId, currentPassword, newPassword) {
+    try {
+        // 1. Хешируем текущий пароль, чтобы сравнить его с хешем в БД
+        const hashedCurrentPass = hashPassword(currentPassword);
+        
+        // 2. Ищем пользователя по ID и текущему хешу
+        const [rows] = await pool.query(
+            "SELECT id FROM users WHERE id = ? AND password = ?", 
+            [userId, hashedCurrentPass]
+        );
+
+        if (rows.length === 0) {
+            // Пользователь не найден, либо текущий пароль неверен
+            return { success: false, error: "Неверный текущий пароль." };
+        }
+
+        // 3. Хешируем новый пароль
+        const hashedNewPass = hashPassword(newPassword);
+        
+        // 4. Обновляем пароль в БД
+        const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
+        await pool.query(updateQuery, [hashedNewPass, userId]);
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Database error during password change:", error);
+        // Не раскрываем пользователю детали ошибки БД
+        throw new Error("Ошибка сервера при обновлении пароля.");
+    }
+}
+
+async function updateAvatarPath(userId, avatarPath) {
+    const query = 'UPDATE users SET avatar_path = ? WHERE id = ?';
+    try {
+        const [result] = await pool.execute(query, [avatarPath, userId]);
+        
+        // ❗ Теперь возвращаем объект:
+        if (result.affectedRows > 0) {
+            return { success: true };
+        } else {
+            return { success: false, error: "Пользователь не найден." };
+        }
+    } catch (error) {
+        console.error("Database error updating avatar path:", error);
+        // ❗ Возвращаем объект ошибки
+        return { success: false, error: "Ошибка при выполнении запроса к БД." };
     }
 }

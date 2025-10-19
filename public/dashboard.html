@@ -313,6 +313,30 @@ function attachContentHandlers(role) {
                 }
         }
     }
+    if (document.querySelector('.profile-layout')) { 
+        if (role === 'student' || role === 'teacher') { 
+            // 1. Загрузка данных
+            loadProfileData(); 
+            // 2. Настройка навигации по вкладкам профиля
+            attachProfileNavigation(); 
+        }
+        const form = document.getElementById('changePasswordForm');
+        if (form) {
+            form.removeEventListener('submit', changePassword); // Предотвращаем дублирование
+            form.addEventListener('submit', changePassword); 
+        }
+
+        const photoForm = document.getElementById('changePhotoForm');
+        const fileInput = document.getElementById('avatarFile');
+
+        if (photoForm && fileInput) {
+            photoForm.removeEventListener('submit', uploadAvatar);
+            photoForm.addEventListener('submit', uploadAvatar);
+            
+            fileInput.removeEventListener('change', updateFileNameDisplay);
+            fileInput.addEventListener('change', updateFileNameDisplay);
+        }
+    }
 }
 
 // Вспомогательная функция для сброса формы
@@ -420,13 +444,17 @@ async function loadContent(path) {
     // 1. Определение статического файла на основе роли и пути
     if (path === '/schedule') {
         targetFile = userRole === 'teacher' ? 'teacher_schedule.html' : 'student_schedule.html';
-    } 
+    } else if (path === '/profile') {
+         // Загружаем профиль студента или преподавателя
+        targetFile = userRole === 'teacher' ? 'teacher_profile.html' : 'student_profile.html'; // Создайте teacher_profile позже
+    }
     else if (path === '/courses') {
         if (userRole === 'admin') {
             targetFile = 'admin_courses.html';}
         else{
         targetFile = userRole === 'teacher' ? 'teacher_courses.html' : 'student_courses.html';}
-    } else {
+    } 
+    else {
         console.error('Unknown path:', path);
         document.getElementById('contentArea').innerHTML = '<p style="color: red;">Неизвестный пункт меню.</p>';
         return;
@@ -449,6 +477,44 @@ async function loadContent(path) {
     }
 }
 
+async function loadProfileData() {
+    const contentHeader = document.getElementById('contentHeader');
+    const msgBox = document.getElementById('personal-data-section');
+    
+    if (contentHeader) contentHeader.textContent = 'ЛИЧНЫЕ ДАННЫЕ (Загрузка...)';
+
+    try {
+        const res = await fetch("/api/get_profile_data"); // НОВЫЙ API
+        const data = await res.json();
+        
+        if (data.success && data.user) {
+            const user = data.user;
+            
+            // 1. Отображение данных в боковой панели
+            document.getElementById('profileUsername').textContent = user.username || 'N/A';
+            
+            // 2. Отображение данных в секции "Личные данные"
+            document.getElementById('displayUsername').textContent = user.username || '—';
+            document.getElementById('displayName').textContent = user.full_name || 'Не указано'; // Предполагаем поле full_name
+            document.getElementById('displayId').textContent = user.id || '—';
+            document.getElementById('displayGroup').textContent = user.group_name || '—';
+            
+            // Эти поля нужно добавить в БД, но пока можно оставить заглушки
+            document.getElementById('displayMajor').textContent = user.major || 'Не задано'; 
+            document.getElementById('displayEntranceYear').textContent = user.entrance_year || 'Не задан';
+
+            if (contentHeader) contentHeader.textContent = 'ЛИЧНЫЕ ДАННЫЕ';
+        } else {
+            if (msgBox) msgBox.innerHTML = '<p style="color:red;">Ошибка загрузки данных профиля: ' + (data.error || 'Неизвестная ошибка') + '</p>';
+            if (contentHeader) contentHeader.textContent = 'ОШИБКА';
+        }
+    } catch (error) {
+        console.error("Profile load error:", error);
+        if (msgBox) msgBox.innerHTML = '<p style="color:red;">❌ Ошибка сети при загрузке профиля.</p>';
+        if (contentHeader) contentHeader.textContent = 'ОШИБКА СЕТИ';
+    }
+}
+
 document.getElementById('scheduleLink').addEventListener('click', (e) => {
     e.preventDefault();
     loadContent('/schedule');
@@ -459,6 +525,10 @@ document.getElementById('courseLink').addEventListener('click', (e) => {
     loadContent('/courses');
 });
 
+document.getElementById('profileLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    loadContent('/profile');
+});
 async function loadStudentSchedule() {
             const msgBox = document.getElementById('scheduleMessage');
             const tableBody = document.getElementById('scheduleTableBody');
@@ -573,6 +643,171 @@ async function loadCourses() {
         if (msgBox) msgBox.textContent = 'Ошибка сети! Не удалось загрузить курсы.';
     }
 }
+
+function attachProfileNavigation() {
+    const navButtons = document.querySelectorAll('.profile-nav-btn');
+    const sections = document.querySelectorAll('.profile-section');
+    const contentHeader = document.getElementById('contentHeader');
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetSectionId = button.getAttribute('data-section');
+            const targetHeader = button.textContent;
+
+            // Сброс активного состояния кнопок
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Переключение секций
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(targetSectionId + '-section').style.display = 'block';
+            
+            // Обновление заголовка
+            if (contentHeader) contentHeader.textContent = targetHeader.toUpperCase();
+            
+            // Специальная обработка для "Личные данные"
+            if (targetSectionId === 'personal-data') {
+                loadProfileData(); 
+            }
+        });
+    });
+}
+
+async function changePassword(e) {
+    e.preventDefault(); // Предотвращаем стандартную отправку формы
+
+    const currentPass = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confirmPass = document.getElementById('confirmNewPassword').value;
+    const msgBox = document.getElementById('passwordMessage');
+    
+    msgBox.textContent = ''; 
+
+    if (newPass.length < 6) {
+        msgBox.textContent = '❌ Новый пароль должен содержать минимум 6 символов.';
+        msgBox.style.color = 'red';
+        return;
+    }
+    
+    if (newPass !== confirmPass) {
+        msgBox.textContent = '❌ Новый пароль и его подтверждение не совпадают.';
+        msgBox.style.color = 'red';
+        return;
+    }
+
+    if (currentPass === newPass) {
+        msgBox.textContent = '❌ Новый пароль не должен совпадать с текущим.';
+        msgBox.style.color = 'red';
+        return;
+    }
+
+    msgBox.textContent = '⏳ Отправка запроса...';
+    msgBox.style.color = 'orange';
+
+    try {
+        const res = await fetch("/api/change_password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                currentPassword: currentPass, 
+                newPassword: newPass 
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            msgBox.textContent = '✅ Пароль успешно изменен!';
+            msgBox.style.color = 'green';
+            // Очищаем форму после успеха
+            document.getElementById('changePasswordForm').reset();
+        } else {
+            msgBox.textContent = '❌ Ошибка: ' + (data.error || 'Неизвестная ошибка сервера.');
+            msgBox.style.color = 'red';
+        }
+    } catch (error) {
+        console.error("Change password error:", error);
+        msgBox.textContent = '❌ Ошибка сети при смене пароля.';
+        msgBox.style.color = 'red';
+    }
+}
+    
+// dashboard.html (внутри тега <script>)
+function updateFileNameDisplay() {
+    const fileInput = document.getElementById('avatarFile');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    
+    if (fileInput.files.length > 0) {
+        fileNameDisplay.textContent = fileInput.files[0].name;
+    } else {
+        fileNameDisplay.textContent = 'Файл не выбран';
+    }
+}    
+    
+
+async function uploadAvatar(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('avatarFile');
+    const msgBox = document.getElementById('photoMessage');
+    
+    if (fileInput.files.length === 0) {
+        msgBox.textContent = '❌ Пожалуйста, выберите файл для загрузки.';
+        msgBox.style.color = 'red';
+        return;
+    }
+
+    const file = fileInput.files[0];
+    // Проверка размера файла (например, не более 5 МБ)
+    if (file.size > 5 * 1024 * 1024) {
+        msgBox.textContent = '❌ Файл слишком большой (макс. 5 МБ).';
+        msgBox.style.color = 'red';
+        return;
+    }
+    
+    msgBox.textContent = '⏳ Загрузка файла...';
+    msgBox.style.color = 'orange';
+
+    // FormData используется для отправки двоичных данных (файлов)
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+        const res = await fetch("/api/upload_avatar", {
+            method: "POST",
+            // Важно: 'Content-Type' не устанавливается! fetch сделает это автоматически с boundary для FormData.
+            body: formData 
+        });
+
+        const data = await res.json();
+        
+        if (res.status === 200 && data.success) {
+            msgBox.textContent = '✅ Аватар успешно обновлен!';
+            msgBox.style.color = 'green';
+            
+            // ❗ Обновляем отображение фото
+            const currentAvatar = document.getElementById('currentAvatar');
+            // Добавляем к пути метку времени, чтобы обойти кеш браузера
+            currentAvatar.src = data.filePath + '?t=' + new Date().getTime();
+            
+            // Очищаем форму
+            document.getElementById('changePhotoForm').reset();
+            document.getElementById('fileNameDisplay').textContent = 'Файл не выбран';
+
+        } else {
+            msgBox.textContent = '❌ Ошибка: ' + (data.error || 'Неизвестная ошибка загрузки.');
+            msgBox.style.color = 'red';
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        msgBox.textContent = '❌ Ошибка сети при загрузке аватара.';
+        msgBox.style.color = 'red';
+    }
+}
+    
+    
     
     </script>
 </body>
