@@ -15,13 +15,26 @@
     <input type="number" id="courseCredits" placeholder="3" required><br><br>
     
     <label for="courseGroup">Группа:</label>
-    <input type="text" id="courseGroup" placeholder="Логистика" required><br><br>
+   <select id="courseGroup" name="group" class="form-control" required>
+        <option value="" disabled selected>Выберите группу</option>
+        <option value="Мехатроника">Мехатроника</option>
+        <option value="Логистика">Логистика</option>
+        <option value="Менеджмент">Менеджмент</option>
+    </select><br><br>
     
     <label for="courseSemester">Семестр (1-8):</label>
     <input type="number" id="courseSemester" min="1" max="8" placeholder="1" required><br><br>
 
     <label for="courseTeacherId">ID Преподавателя:</label>
-    <input type="number" id="courseTeacherId" placeholder="33" required><br><br>
+    <select id="courseTeacherId" name="teacher_id" class="form-control" required>
+        <option value="33" selected>HerrBerikuly</option>
+        <option value="44">Muhtarov.D</option>
+        <option value="45">Ergozha.A</option>
+        <option value="46">Uzakberdi.Zh</option>
+        <option value="47">Ospanov</option>
+        <option value="48">Kenzhebaeva.Zh</option>
+        <option value="49">Balgaev.N</option>
+    </select><br><br>
 
     <button id="saveCourseBtn">Сохранить Курс</button>
     <button id="cancelEditBtn" style="display:none;">Отмена</button>

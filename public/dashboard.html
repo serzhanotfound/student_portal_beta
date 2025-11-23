@@ -50,6 +50,220 @@
         .main-content h1 {
             color: #333;
         }
+
+        /* --- Стили для раздела РЕЗУЛЬТАТЫ --- */
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 25px; 
+    margin-top: 20px;
+}
+
+.result-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 220px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.result-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.card-rating-label {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.card-grade {
+    font-size: 4em;
+    font-weight: 900;
+    color: #e74c3c; /* Красный по умолчанию */
+    flex-grow: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-teacher {
+    font-size: 0.85em;
+    color: #34495e;
+    border-top: 1px solid #ecf0f1;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+/* Сообщения о состоянии */
+.loading-message, .no-results-message {
+    /* Важно для растягивания на всю ширину в Grid-контейнере */
+    width: 100%; 
+    text-align: center;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    color: #34495e;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+.action-btn {
+    padding: 10px 20px;
+    background-color: #3498db; /* Синяя кнопка */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.action-btn:hover {
+    background-color: #2980b9;
+}
+
+.grading-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab-button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.tab-button.active {
+    background-color: #fff;
+    border-color: #ddd;
+    border-bottom: 2px solid #fff; /* Перекрываем нижнюю границу контейнера */
+}
+
+.grading-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.grading-table th, .grading-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap; /* Важно для длинных заголовков */
+}
+
+.grading-table thead th {
+    background-color: #f2f2f2;
+    font-size: 12px;
+}
+
+.table-scroll {
+    overflow-x: auto; /* Позволяет прокручивать горизонтально, если столбцов много */
+}
+
+.grade-input {
+    padding: 3px;
+    text-align: center;
+}
+
+/* CSS для вкладок */
+.tabs-nav {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ccc;
+}
+.tab-button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+.tab-button.active {
+    border-bottom: 2px solid #8b0000;
+    color: #8b0000;
+    font-weight: bold;
+}
+.tab-pane {
+    display: none;
+    padding-top: 15px;
+}
+.tab-pane.active {
+    display: block;
+}
+
+/* Стили для таблицы */
+.assessment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.assessment-table th, .assessment-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+.assessment-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.score-value.not-set {
+    color: #999;
+}
+
+/* Стили для сводки */
+.summary-box {
+    border: 1px solid #8b0000;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #fff0f0;
+    border-radius: 8px;
+}
+.final-grade-line {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+.final-percent-value {
+    color: #000080;
+    font-weight: bold;
+    margin-left: 10px;
+}
+.final-letter-value {
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+}
+/* Пример цветов для оценки */
+.grade-a { background-color: #27ae60; }
+.grade-b { background-color: #2980b9; }
+.grade-c { background-color: #f39c12; }
+.grade-d { background-color: #d35400; }
+.grade-f { background-color: #c0392b; }
     </style>
 </head>
 <body>
@@ -63,7 +277,7 @@
         <a href="#" class="menu-item" id="profileLink">Profile</a>
         <a href="#" class="menu-item" id="courseLink">Courses</a>
         <a href="#" class="menu-item" id="scheduleLink">Schedule</a>
-        <a href="#" class="menu-item">Results</a>
+        <a href="#" class="menu-item" id="resultsLink">Results</a>
         <a href="#" class="menu-item" id="logoutLink">Logout</a>
     </div>
 
@@ -72,7 +286,20 @@
         <p>Ваш контент будет загружен здесь.</p>
         <div id="contentArea"></div>
     </div>
-
+    <div id="messageModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2 id="modalSubject">Заголовок сообщения</h2>
+                    <p class="modal-meta" style="color: #bdc3c7;">Отправитель: <span id="modalSender"></span> | Дата: <span id="modalDate"></span></p>
+                    <hr>
+                    <div id="modalBody" style="white-space: pre-wrap; margin-top: 20px;">
+                        ⏳ Загрузка...
+                    </div>
+                    <div class="modal-footer" style="margin-top: 30px; text-align: right;">
+                        <button id="deleteMessageBtn" class="action-btn delete-btn" style="background-color: #e74c3c;">Удалить</button>
+                    </div>
+                </div>
+            </div>
     <script>
 
 let userRole = '';
@@ -168,12 +395,12 @@ async function saveSchedule() {
 }
 
 async function loadTeacherSchedule() {
-    // Читаем текущие выбранные значения
+    
     const group = document.getElementById('groupSelector').value;
     const day = document.getElementById('daySelector').value;
     const msgBox = document.getElementById('scheduleMessage');
     
-    // Очищаем все поля ввода перед загрузкой (чтобы убрать старые данные)
+    
     const tableBody = document.getElementById('scheduleInputTable').querySelector('tbody');
     tableBody.querySelectorAll('input').forEach(input => input.value = '');
 
@@ -227,7 +454,7 @@ async function loadAdminCourses() {
     const saveBtn = document.getElementById('saveCourseBtn');
     
     if (saveBtn) {
-        saveBtn.removeEventListener('click', saveCourse); // Удаляем старый, если есть
+        saveBtn.removeEventListener('click', saveCourse); 
         saveBtn.addEventListener('click', saveCourse);
     }
     document.getElementById('cancelEditBtn').addEventListener('click', resetCourseForm);
@@ -236,7 +463,7 @@ async function loadAdminCourses() {
     if (msgBox) msgBox.textContent = 'Загрузка курсов...';
 
     try {
-        // Мы будем использовать ТОТ ЖЕ API, что и для преподавателя, но БЕЗ фильтра по teacher_id
+        
         const res = await fetch("/api/get_all_courses");
         const data = await res.json();
         
@@ -296,13 +523,13 @@ function attachContentHandlers(role) {
             loadStudentSchedule();
         }
     }
-
+    initializeAdminFormBinding();
     if (document.getElementById('coursesTableBody')) {
          
         if (role === 'admin') {
-            loadAdminCourses(); // <-для Администратора
+            loadAdminCourses(); 
         } else {
-            loadCourses(); // <-для Студентов/Преподавателей
+            loadCourses(); 
 
              if (role === 'student') {
                 const selector = document.getElementById('semesterSelector');
@@ -314,15 +541,14 @@ function attachContentHandlers(role) {
         }
     }
     if (document.querySelector('.profile-layout')) { 
-        if (role === 'student' || role === 'teacher') { 
-            // 1. Загрузка данных
+        if (role === 'student' || role === 'teacher' || role === 'admin') { 
+            
             loadProfileData(); 
-            // 2. Настройка навигации по вкладкам профиля
             attachProfileNavigation(); 
         }
         const form = document.getElementById('changePasswordForm');
         if (form) {
-            form.removeEventListener('submit', changePassword); // Предотвращаем дублирование
+            form.removeEventListener('submit', changePassword);
             form.addEventListener('submit', changePassword); 
         }
 
@@ -346,7 +572,7 @@ function resetCourseForm() {
     document.getElementById('courseDescription').value = '';
     document.getElementById('courseCredits').value = '';
     document.getElementById('courseTeacherId').value = '';
-      document.getElementById('courseGroup').value = '';
+    document.getElementById('courseGroup').value = '';
     document.getElementById('courseSemester').value = '';
     document.getElementById('saveCourseBtn').textContent = 'Сохранить Курс';
     document.getElementById('formMessage').textContent = '';
@@ -370,6 +596,18 @@ function editCourse(course) {
 
 // Отправка данных курса на сервер (добавление/обновление)
 async function saveCourse() {
+    const teacherIdElement = document.getElementById('courseTeacherId');
+    const msgBox = document.getElementById('formMessage');
+
+    if (!teacherIdElement) {
+        if (msgBox) {
+            msgBox.textContent = '❌ Ошибка: Форма курса не инициализирована полностью.';
+        }
+        
+        return;
+    }
+    
+    
     const courseId = document.getElementById('courseId').value || null;
     const name = document.getElementById('courseName').value.trim();
     const group_name = document.getElementById('courseGroup').value.trim(); 
@@ -377,8 +615,8 @@ async function saveCourse() {
 
     const description = document.getElementById('courseDescription').value.trim();
     const credits = parseInt(document.getElementById('courseCredits').value.trim());
-    const teacher_id = parseInt(document.getElementById('courseTeacherId').value.trim());
-    const msgBox = document.getElementById('formMessage');
+    const teacher_id = parseInt(teacherIdElement.value.trim());
+    //const msgBox = document.getElementById('formMessage');
 
     if (!name || isNaN(credits) || isNaN(teacher_id) || !group_name || isNaN(semester)) {
         msgBox.textContent = '❌ Заполните все поля корректно.';
@@ -398,7 +636,7 @@ async function saveCourse() {
         if (data.success) {
             msgBox.textContent = `✅ Курс успешно ${courseId ? 'обновлен' : 'добавлен'}!`;
             resetCourseForm();
-            loadAdminCourses(); // Перезагружаем список
+            loadAdminCourses();
         } else {
             msgBox.textContent = '❌ Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка.');
         }
@@ -409,7 +647,6 @@ async function saveCourse() {
     }
 }
 
-// Удаление курса
 async function deleteCourse(id) {
     if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
     
@@ -445,9 +682,14 @@ async function loadContent(path) {
     if (path === '/schedule') {
         targetFile = userRole === 'teacher' ? 'teacher_schedule.html' : 'student_schedule.html';
     } else if (path === '/profile') {
+        if(userRole === 'admin' ){
+            targetFile = 'admin_profile.html';}
+        else{
          // Загружаем профиль студента или преподавателя
         targetFile = userRole === 'teacher' ? 'teacher_profile.html' : 'student_profile.html'; // Создайте teacher_profile позже
+        }
     }
+    
     else if (path === '/courses') {
         if (userRole === 'admin') {
             targetFile = 'admin_courses.html';}
@@ -733,8 +975,7 @@ async function changePassword(e) {
         msgBox.style.color = 'red';
     }
 }
-    
-// dashboard.html (внутри тега <script>)
+
 function updateFileNameDisplay() {
     const fileInput = document.getElementById('avatarFile');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -789,8 +1030,18 @@ async function uploadAvatar(e) {
             
             // ❗ Обновляем отображение фото
             const currentAvatar = document.getElementById('currentAvatar');
-            // Добавляем к пути метку времени, чтобы обойти кеш браузера
-            currentAvatar.src = data.filePath + '?t=' + new Date().getTime();
+           // Создаем URL с кэш-бастером
+             const newAvatarUrl = data.filePath + '?t=' + new Date().getTime();
+             document.getElementById('currentAvatar').src = newAvatarUrl;
+
+             // ❗ НОВОЕ: Обновляем аватар в левом сайдбаре
+             // Предполагаем, что у изображения в сайдбаре есть ID 'sidebarAvatar'
+            const sidebarAvatar = document.getElementById('sidebarAvatar'); 
+            if (sidebarAvatar) {
+                // Устанавливаем background-image, используя URL с кэш-бастером
+                sidebarAvatar.style.backgroundImage = `url('${newAvatarUrl}')`; 
+            }
+            
             
             // Очищаем форму
             document.getElementById('changePhotoForm').reset();
@@ -806,9 +1057,1069 @@ async function uploadAvatar(e) {
         msgBox.style.color = 'red';
     }
 }
+
+async function loadProfileAndSetAvatar() {
+   try {
+        const response = await fetch('/api/get_profile_data');
+        const data = await response.json();
+    console.log('Response JSON:', data);
+
+        if (data.success) {
+            const user = data.user;
+            window.userRole = user.role;
+            // 1. Формирование пути с кэш-бастером
+            const avatarPath = user.avatar_path || '/assets/default_avatar.png';
+            const avatarUrl = avatarPath + '?t=' + new Date().getTime(); 
+
+            // 2. Обновление аватара в боксе "Сменить фото" (IMG)
+            const currentAvatar = document.getElementById('currentAvatar');
+            if (currentAvatar) {
+                currentAvatar.src = avatarUrl;
+            }
+
+            // 3. Обновление аватара в сайдбаре (DIV)
+            const sidebarAvatar = document.getElementById('sidebarAvatar'); 
+            if (sidebarAvatar) {
+                // ❗ Обязательно используем background-image
+                sidebarAvatar.style.backgroundImage = `url('${avatarUrl}')`;
+            }
+            
+            // 4. Обновление текста (теперь с проверкой, чтобы избежать ошибки)
+            const profileUsernameElement = document.getElementById('profileUsername');
+            if (profileUsernameElement) {
+                profileUsernameElement.textContent = user.username;
+            }
+
+            const avatarUsernameDisplayElement = document.getElementById('avatarUsernameDisplay');
+            if (avatarUsernameDisplayElement) {
+                avatarUsernameDisplayElement.textContent = user.username;
+            }
+            
+        } else if (response.status === 401) {
+            // Если сессия недействительна, перенаправляем на логин
+            window.location.href = '/'; 
+        } else {
+            console.error("Ошибка загрузки профиля:", data.error);
+        }
+    } catch (error) {
+        console.error("Сетевая ошибка при загрузке профиля:", error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadProfileAndSetAvatar);
+
+async function sendAdminMessage(e) {
+    e.preventDefault();
+    console.log("Submit event stopped. Sending via Fetch.");
+
+    const subject = document.getElementById('subjectInput').value.trim();
+    const message = document.getElementById('messageTextarea').value.trim();
+    const resultBox = document.getElementById('adminMessageStatus'); 
+
+    if (!subject || !message) {
+        resultBox.textContent = '❌ Пожалуйста, заполните все поля.';
+        resultBox.style.color = 'red';
+        return;
+    }
+
+    resultBox.textContent = '⏳ Отправка...';
+    resultBox.style.color = 'orange';
+
+    try {
+        console.log('Sending admin message', { subject, message });
+        const response = await fetch('/api/send_admin_message', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ subject, message })
+        });
+        console.log('Fetch completed, status =', response.status);
+
+        const data = await response.json();
+
+        if (response.status === 200 && data.success) {
+            resultBox.textContent = '✅ Сообщение успешно отправлено!';
+            resultBox.style.color = 'green';
+            document.getElementById('adminMessageForm').reset();
+        } else {
+            resultBox.textContent = `❌ Ошибка: ${data.error || 'Неизвестная ошибка.'}`;
+            resultBox.style.color = 'red';
+        }
+    } catch (error) {
+        resultBox.textContent = '❌ Ошибка сети. Проверьте соединение.';
+        resultBox.style.color = 'red';
+        console.error("Network error sending admin message:", error);
+    }
+}
+
+async function loadAdminMessages() {
+    const container = document.getElementById('messagesListContainer');
+    const status = document.getElementById('messagesStatus');
     
     
+    container.innerHTML = '<p style="color: #f39c12; text-align: center;">⏳ Загрузка сообщений...</p>';
+    status.textContent = '';
+
+    try {
     
+        const response = await fetch('/api/get_admin_messages', { 
+            method: 'GET',
+            credentials: 'same-origin' 
+        });
+        
+        const data = await response.json();
+
+        if (response.ok && data.success && Array.isArray(data.messages)) {
+            if (data.messages.length === 0) {
+                container.innerHTML = '<p style="color: #bdc3c7; text-align: center;">Входящих сообщений нет.</p>';
+            } else {
+                container.innerHTML = generateMessagesTable(data.messages);
+            }
+        } else {
+            status.textContent = `❌ Ошибка загрузки: ${data.error || 'Неизвестная ошибка сервера.'}`;
+            container.innerHTML = '';
+        }
+    } catch (error) {
+        status.textContent = '❌ Ошибка сети. Не удалось загрузить сообщения.';
+        container.innerHTML = '';
+        console.error("Error loading admin messages:", error);
+    }
+}
+
+async function loadAdminContent() {
+    const response = await fetch('admin_profile.html');
+    const htmlContent = await response.text();
+    document.getElementById('mainContentContainer').innerHTML = htmlContent;
+}
+
+function generateMessagesTable(messages) {
+    let html = '<table class="messages-table"><thead><tr>';
+    html += '<th>ID</th><th>Отправитель</th><th>Тема</th><th>Дата</th><th>Статус</th><th>Действия</th>';
+    html += '</tr></thead><tbody>';
+
+    messages.forEach(msg => {
+        const isRead = msg.is_read === 1; 
+        const statusText = isRead ? 'Прочитано' : 'НЕ ПРОЧИТАНО';
+        const statusClass = isRead ? 'status-read' : 'status-unread';
+        
+        html += `
+            <tr data-message-id="${msg.id}" class="${statusClass}">
+                <td>${msg.id}</td>
+                <td>${msg.user_name || 'Студент'}</td>
+                <td><a href="#" class="message-subject-link" data-id="${msg.id}">${msg.subject}</a></td>
+                <td>${new Date(msg.created_at).toLocaleDateString()}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="action-btn view-btn" data-id="${msg.id}">Просмотр</button>
+                    <button class="action-btn delete-btn" data-id="${msg.id}" style="background-color: #e74c3c;">Удалить</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    return html;
+}
+
+async function showMessageModal(messageId) {
+    const modal = document.getElementById('messageModal');
+    const modalBody = document.getElementById('modalBody');
+    
+    
+    modal.style.display = 'block';
+    modalBody.innerHTML = '⏳ Загрузка сообщения...';
+    
+    
+    document.getElementById('deleteMessageBtn').setAttribute('data-id', messageId);
+
+    try {
+        
+        const response = await fetch(`/api/view_message?id=${messageId}`, { 
+            method: 'GET',
+            credentials: 'same-origin' 
+        });
+        
+        const data = await response.json();
+
+        if (response.ok && data.success && data.message) {
+            const msg = data.message;
+            
+            document.getElementById('modalSubject').textContent = msg.subject;
+            document.getElementById('modalSender').textContent = msg.user_name || 'Неизвестный';
+            document.getElementById('modalDate').textContent = new Date(msg.created_at).toLocaleDateString();
+            modalBody.textContent = msg.message;
+            
+            loadAdminMessages(); 
+        } else {
+            modalBody.innerHTML = `❌ Ошибка загрузки сообщения: ${data.error || 'Сообщение не найдено.'}`;
+        }
+    } catch (error) {
+        modalBody.innerHTML = '❌ Ошибка сети. Не удалось загрузить сообщение.';
+        console.error("Error loading single message:", error);
+    }
+}
+
+
+function closeModal() {
+    const modal = document.getElementById('messageModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function deleteMessageHandler(messageId) {
+    if (!confirm('Вы уверены, что хотите удалить это сообщение? Это действие необратимо.')) {
+        return;
+    }
+
+    const deleteBtn = document.getElementById('deleteMessageBtn');
+    const originalText = deleteBtn.textContent;
+    
+    deleteBtn.textContent = 'Удаление...';
+    deleteBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/delete_message', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: messageId })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            alert('Сообщение успешно удалено!');
+            closeModal();
+            loadAdminMessages();
+        } else {
+            alert(`Ошибка удаления: ${data.error || 'Неизвестная ошибка.'}`);
+        }
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        alert('Ошибка сети. Не удалось удалить сообщение.');
+    } finally {
+        deleteBtn.textContent = originalText;
+        deleteBtn.disabled = false;
+    }
+}
+
+function handleResultsClick() {
+    const contentArea = document.getElementById('contentArea');
+    contentArea.innerHTML = ''; // Очищаем контейнер
+
+    // !!! ВАЖНО: Убедитесь, что window.userRole установлен после логина.
+    // Если преподаватель, загружаем интерфейс выставления оценок.
+    if (window.userRole === 'teacher' || window.userRole === 'admin') {
+        loadTeacherGradingInterface(); 
+    } 
+    // Если студент, загружаем обзор результатов.
+    else if (window.userRole === 'student') {
+        loadResultsOverview(); 
+    } 
+    else {
+        contentArea.innerHTML = '<h2 class="page-header">ОШИБКА</h2><p>Неизвестная роль пользователя или данные не загружены.</p>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    try {
+        loadProfileAndSetAvatar(); 
+    } catch (e) {
+        console.error("Ошибка в loadProfileAndSetAvatar:", e);
+    }
+    switchProfileSection('personal-data');
+
+    const resultsLink = document.getElementById('resultsLink');
+    if (resultsLink) {
+        resultsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Вызываем наш новый обработчик, который выбирает нужную функцию
+            handleResultsClick(); 
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        
+        const resultCard = e.target.closest('.result-card');
+        if (resultCard) {
+            const courseId = resultCard.getAttribute('data-course-id');
+            const courseName = resultCard.querySelector('.card-title').textContent; 
+            e.preventDefault(); 
+            
+            showCourseDetailsView(courseId, courseName);
+        }
+        
+        if (e.target.id === 'backToOverviewBtn') {
+            e.preventDefault();
+            loadResultsOverview(); 
+        }
+    });
+});
+
+document.body.addEventListener('click', function(e) {
+
+    if (e.target.matches('.profile-nav-btn')) {
+        const sectionId = e.target.getAttribute('data-section');
+        e.preventDefault(); 
+        console.log(`DELEGATE: Клик по навигации: ${sectionId}`);
+        switchProfileSection(sectionId);
+    } 
+
+    if (e.target.matches('.action-btn.view-btn') || e.target.matches('.message-subject-link')) {
+        const messageId = e.target.getAttribute('data-id');
+        e.preventDefault(); 
+        if (messageId) {
+            console.log(`DELEGATE: Вызов showMessageModal для ID: ${messageId}`);
+            showMessageModal(messageId);
+        }
+    }
+    
+    if (e.target.matches('#deleteMessageBtn')) {
+        const messageId = e.target.getAttribute('data-id'); 
+        if (messageId) {
+             console.log(`DELEGATE: Вызов deleteMessageHandler для ID: ${messageId}`);
+            deleteMessageHandler(messageId); 
+        }
+    }
+    
+    if (e.target.matches('#messageModal .close-btn') || e.target.id === 'messageModal') {
+        closeModal();
+    }
+});
+
+window.onclick = function(event) {
+    const modal = document.getElementById('messageModal');
+    if (modal && event.target === modal) {
+        closeModal();
+    }
+}
+
+function initializeAdminFormBinding() {
+    const adminForm = document.getElementById('adminMessageForm');
+
+    if (adminForm && !adminForm.dataset.initialized) {
+        adminForm.addEventListener('submit', sendAdminMessage);
+        adminForm.dataset.initialized = 'true';
+        console.log("Поиск формы Admin: УСПЕШНО ПРИВЯЗАНА!");
+    }
+}
+
+function switchProfileSection(sectionId) {
+    document.querySelectorAll('.profile-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    document.querySelectorAll('.profile-nav-btn').forEach(button => {
+        button.classList.remove('active');
+    });
+
+    const targetSection = document.getElementById(sectionId + '-section');
+    const targetButton = document.querySelector(`.profile-nav-btn[data-section="${sectionId}"]`);
+
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+    if (targetButton) {
+        targetButton.classList.add('active');
+    }
+    const headerElement = document.getElementById('contentHeader');
+    
+    if (headerElement) {
+        const headerMap = {
+            'personal-data': 'ЛИЧНЫЕ ДАННЫЕ',
+            'change-password': 'СМЕНА ПАРОЛЯ',
+            'change-photo': 'СМЕНА ФОТО',
+            'message-to-admin': 'СООБЩЕНИЕ АДМИНИСТРАТОРУ',
+            'view-messages': 'ВХОДЯЩИЕ СООБЩЕНИЯ'
+        };
+        headerElement.textContent = headerMap[sectionId] || sectionId.toUpperCase();
+    }
+
+    if (sectionId === 'message-to-admin') {
+        const messageSection = document.getElementById('message-to-admin-section');
+        
+        if (messageSection && messageSection.style.display === 'block') {
+             initializeAdminFormBinding();
+        }
+    }
+    else if (sectionId === 'view-messages') { 
+    const adminMessageSection = document.getElementById('view-messages-section'); 
+        
+        if (adminMessageSection) {
+            console.log("DEBUG: Вызов loadAdminMessages для 'view-messages'"); // Оставьте отладку!
+            loadAdminMessages();
+        }
+    }
+}
+
+/*
+ * Генерирует HTML-разметку для одной карточки с результатом.
+ */
+function renderResultCard(item) {
+    let gradeColor = '#27ae60'; // A
+    if (item.letterGrade.startsWith('F')) {
+        gradeColor = '#e74c3c'; // F
+    } else if (item.letterGrade.startsWith('D') || item.letterGrade.startsWith('C')) {
+        gradeColor = '#f39c12'; // D/C
+    }
+    
+    const ratingDisplay = item.currentRating === 'Нет данных' 
+                          ? `<span style="color:#e74c3c;">${item.currentRating}</span>` 
+                          : `Текущий рейтинг: ${item.currentRating}`;
+                          
+    return `
+        <div class="result-card" data-course-id="${item.courseId}">
+            <div class="card-title">${item.title}</div>
+            <div class="card-rating-label">${ratingDisplay}</div>
+            
+            <div class="card-grade" style="color: ${gradeColor};">${item.letterGrade}</div> 
+            
+            <div class="card-teacher">Преподаватель: ${item.teacherName}</div>
+        </div>
+    `;
+}
+
+async function loadResultsOverview() {
+    const container = document.getElementById('contentArea');
+    
+    container.innerHTML = `
+        <h2 class="page-header">ОБЗОР РЕЗУЛЬТАТОВ ПО КУРСАМ</h2>
+        <div id="results-overview-container" class="results-grid">
+            <div class="loading-message">Загрузка результатов...</div>
+        </div>
+        <div id="course-details-section" class="details-view" style="display:none;">
+            <button id="backToOverviewBtn" class="action-btn">← Назад к обзору</button>
+            <h4 id="detailsTitle" style="margin-top: 20px;">Детальные оценки по курсу: </h4>
+            <div id="details-table-container"></div>
+        </div>
+    `;
+    
+    const overviewContainer = document.getElementById('results-overview-container');
+
+    try {
+        const response = await fetch('/api/student/results/overview');
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Ошибка при получении данных с сервера.");
+        }
+
+        const resultsData = result.data;
+        
+        if (resultsData.length === 0) {
+            overviewContainer.innerHTML = '<div class="no-results-message">На данный момент результаты по курсам отсутствуют.</div>';
+            return;
+        }
+
+        let cardsHtml = '';
+        resultsData.forEach(item => {
+            cardsHtml += renderResultCard(item);
+        });
+        
+        overviewContainer.innerHTML = cardsHtml;
+
+    } catch (error) {
+        console.error("Error loading student results:", error);
+        overviewContainer.innerHTML = `<div class="error-message">Не удалось загрузить результаты: ${error.message}</div>`;
+    }
+}
+
+async function showCourseDetailsView(courseId, courseName) {
+    document.getElementById('results-overview-container').style.display = 'none';
+    
+    const detailsSection = document.getElementById('course-details-section');
+    detailsSection.style.display = 'block';
+    
+    document.getElementById('detailsTitle').textContent = `Детальные оценки по курсу: ${courseName}`;
+    const container = document.getElementById('details-table-container');
+    container.innerHTML = '<p class="loading-message">Загрузка детальной информации...</p>';
+
+    try {
+        const response = await fetch(`/api/student/results/details/${courseId}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Сервер вернул ошибку, но не JSON (возможно, HTML):", errorText);
+            throw new Error(`Ошибка сервера. Статус: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Ошибка при получении данных с сервера.");
+        }
+
+        const groupedData = result.data;
+        
+        if (Object.keys(groupedData).length === 0) {
+            container.innerHTML = '<div class="no-results-message">Шаблоны оценок по этому курсу не настроены или оценки не проставлены.</div>';
+            return;
+        }
+
+        // --- 1. Создание структуры вкладок ---
+        container.innerHTML = `
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-button active" data-tab="summary">Общая сводка</button>
+                    <button class="tab-button" data-tab="weekly">Недельные Оценки</button>
+                    <button class="tab-button" data-tab="srsp">СРСП</button>
+                    <button class="tab-button" data-tab="final">Итоговые Оценки</button>
+                </div>
+                <div class="tabs-content">
+                    <div id="tab-summary-content" class="tab-pane active"></div>
+                    <div id="tab-weekly-content" class="tab-pane"></div>
+                    <div id="tab-srsp-content" class="tab-pane"></div>
+                    <div id="tab-final-content" class="tab-pane"></div>
+                </div>
+            </div>
+        `;
+        
+        // --- 2. Обработка данных и расчет сводки ---
+        const allAssessments = [];
+        Object.keys(groupedData).forEach(key => allAssessments.push(...groupedData[key]));
+        
+        // Трансформация недельных данных в удобный формат (Неделя -> Практика/Лекция)
+        const weeklyTransformedData = {};
+        
+        allAssessments.forEach(item => {
+            if (item.category === 'Недельные') {
+                // Извлекаем номер недели (например, 'Неделя 15')
+                const match = item.assessment_name.match(/Неделя (\d+)/);
+                const week = match ? parseInt(match[1]) : 0;
+                
+                if (week > 0) {
+                    if (!weeklyTransformedData[week]) {
+                        weeklyTransformedData[week] = {};
+                    }
+                    if (item.subcategory === 'Практика') {
+                        weeklyTransformedData[week].practice = item;
+                    } else if (item.subcategory === 'Лекции') {
+                        weeklyTransformedData[week].lecture = item;
+                    }
+                }
+            }
+        });
+        
+        // Расчет общей сводки (самый важный расчет)
+        const summary = calculateOverallSummary(allAssessments);
+
+        // --- 3. Отрисовка контента ---
+        document.getElementById('tab-summary-content').innerHTML = renderSummaryTab(summary);
+        document.getElementById('tab-weekly-content').innerHTML = renderWeeklyTable(weeklyTransformedData);
+        document.getElementById('tab-srsp-content').innerHTML = renderAssessmentTable(groupedData['СРСП'] || [], 'СРСП');
+        document.getElementById('tab-final-content').innerHTML = renderAssessmentTable(groupedData['Итоговые'] || [], 'Итоговые Оценки');
+
+        // --- 4. Привязка обработчиков клика для вкладок ---
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                activateTab(this.dataset.tab);
+            });
+        });
+
+    } catch (error) {
+        console.error("Error loading student assessment details:", error);
+        container.innerHTML = `<div class="error-message">Не удалось загрузить детальные оценки: ${error.message}</div>`;
+    }
+}
+
+window.assessmentData = {
+    students: [],
+    assessments: [],
+    grades: {}
+};
+
+
+/**
+ * Инициализирует интерфейс выставления оценок для преподавателя в #contentArea.
+ */
+async function loadTeacherGradingInterface() {
+
+    const container = document.getElementById('contentArea');
+    container.innerHTML = `
+        <h2 class="page-header">ВЫСТАВЛЕНИЕ ОЦЕНОК</h2>
+        <div class="filter-controls" style="margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+            <label for="courseSelect">Курс:</label>
+            <select id="courseSelect" style="padding: 8px; margin-right: 20px;"></select>
+            
+            <label for="groupSelect">Группа:</label>
+            <select id="groupSelect" style="padding: 8px; margin-right: 20px;" disabled></select>
+            
+            <button id="loadAssessmentDataBtn" class="action-btn" style="background-color: #3498db;" disabled>Загрузить таблицу</button>
+        </div>
+        
+        <div id="assessmentDataContainer">
+            <p class="loading-message">Выберите курс и группу для начала.</p>
+        </div>
+    `;
+
+    const courseSelect = document.getElementById('courseSelect');
+    const groupSelect = document.getElementById('groupSelect');
+    const loadBtn = document.getElementById('loadAssessmentDataBtn');
+    const dataContainer = document.getElementById('assessmentDataContainer');
+    
+    try {
+        courseSelect.innerHTML = '<option>Загрузка...</option>';
+        const response = await fetch('/api/teacher/courses');
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Ошибка при получении данных о курсах.");
+        }
+        
+        window.teacherCoursesData = result.data; // Сохраняем данные
+
+        courseSelect.innerHTML = '<option value="">-- Выберите курс --</option>';
+        result.data.forEach(course => {
+            const option = document.createElement('option');
+            option.value = course.course_id;
+            option.textContent = course.course_name;
+            option.dataset.groups = JSON.stringify(course.groups);
+            courseSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Error loading teacher courses:", error);
+        dataContainer.innerHTML = `<p style="color: red;">Не удалось загрузить курсы: ${error.message}</p>`;
+    }
+    
+    // Привязка событий
+    courseSelect.addEventListener('change', () => updateGroupSelect(courseSelect, groupSelect, loadBtn));
+    groupSelect.addEventListener('change', () => toggleLoadButton(groupSelect, loadBtn));
+    
+    loadBtn.addEventListener('click', loadAssessmentTables);
+}
+
+/** Обновляет выпадающий список групп на основе выбранного курса. */
+function updateGroupSelect(courseSelect, groupSelect, loadBtn) {
+    groupSelect.innerHTML = '';
+    groupSelect.disabled = true;
+    loadBtn.disabled = true;
+
+    const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+        const groups = JSON.parse(selectedOption.dataset.groups || '[]');
+        
+        groupSelect.innerHTML = '<option value="">-- Выберите группу --</option>';
+        groups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+        });
+        
+        groupSelect.disabled = groups.length === 0;
+        if (groups.length === 0) {
+             groupSelect.innerHTML = '<option value="">(Группы не найдены)</option>';
+        }
+    }
+}
+
+/** Переключает состояние кнопки "Загрузить" */
+function toggleLoadButton(groupSelect, loadBtn) {
+    loadBtn.disabled = !groupSelect.value;
+}
+
+
+/**
+ * Загружает студентов и оценки с сервера и рендерит три таблицы.
+ */
+async function loadAssessmentTables() {
+    const courseId = document.getElementById('courseSelect').value;
+    const groupName = document.getElementById('groupSelect').value;
+    
+    const dataContainer = document.getElementById('assessmentDataContainer');
+    dataContainer.innerHTML = `<p class="loading-message">Загрузка данных для группы ${groupName}...</p>`;
+    
+    try {
+        const response = await fetch(`/api/teacher/assessment_data/${courseId}/${encodeURIComponent(groupName)}`);
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Ошибка при загрузке данных для выставления оценок.");
+        }
+        
+        window.assessmentData = result.data;
+        
+        // Рендеринг вкладок и таблиц
+        renderGradingInterface(dataContainer, result.data);
+
+    } catch (error) {
+        console.error("Error loading assessment data:", error);
+        dataContainer.innerHTML = `<p style="color: red;">Не удалось загрузить данные: ${error.message}</p>`;
+    }
+}
+
+
+/**
+ * Рендерит вкладки (Недельные, СРСП, Итоговые) и таблицы с полями ввода.
+ */
+function renderGradingInterface(container, data) {
+    if (data.students.length === 0) {
+        container.innerHTML = `<p class="no-results-message">В группе "${document.getElementById('groupSelect').value}" нет студентов.</p>`;
+        return;
+    }
+    
+    // Группируем типы оценок по категории и подкатегории
+    const groupedAssessments = data.assessments.reduce((acc, item) => {
+        if (!acc[item.category]) acc[item.category] = {};
+        if (!acc[item.category][item.subcategory]) acc[item.category][item.subcategory] = [];
+        acc[item.category][item.subcategory].push(item);
+        return acc;
+    }, {});
+    
+    let html = `
+        <div class="grading-tabs">
+            <button class="tab-button active" data-tab="weekly">Недельные оценки</button>
+            <button class="tab-button" data-tab="srsp">СРСП</button>
+            <button class="tab-button" data-tab="final">Итоговые оценки</button>
+        </div>
+        <form id="gradingForm">
+            <div id="tab-weekly" class="tab-content active">
+                ${renderWeeklyAssessments(groupedAssessments['Недельные'], data)}
+            </div>
+            <div id="tab-srsp" class="tab-content" style="display:none;">
+                ${renderAssessmentTable(groupedAssessments['СРСП'] ? groupedAssessments['СРСП']['СРСП'] : [], data)}
+            </div>
+            <div id="tab-final" class="tab-content" style="display:none;">
+                ${renderAssessmentTable(groupedAssessments['Итоговые'] ? Object.values(groupedAssessments['Итоговые']).flat() : [], data)}
+            </div>
+            
+            <div style="margin-top: 25px; text-align: right;">
+                <button type="submit" id="saveGradesBtn" class="action-btn" style="background-color: #2ecc71;">Сохранить оценки</button>
+                <div id="saveMessage" style="margin-top: 10px;"></div>
+            </div>
+        </form>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Привязка событий переключения вкладок
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const tabId = e.target.dataset.tab;
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            e.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+        });
+    });
+    
+    // Привязка формы сохранения
+    document.getElementById('gradingForm').addEventListener('submit', saveGrades);
+}
+
+/**
+ * Рендерит недельные оценки с разделением на Практику и Лекции.
+ */
+function renderWeeklyAssessments(weeklyData, data) {
+    if (!weeklyData) return '<p>Нет данных по недельным оценкам.</p>';
+    
+    let html = '';
+    
+    // 1. Секция Практики
+    if (weeklyData['Практика']) {
+        html += '<h4>Практика (1-15 Неделя)</h4>';
+        html += renderAssessmentTable(weeklyData['Практика'], data, 'weekly-practice');
+    }
+    
+    // 2. Секция Лекций
+    if (weeklyData['Лекции']) {
+        html += '<h4 style="margin-top: 20px;">Лекции (1-15 Неделя)</h4>';
+        html += renderAssessmentTable(weeklyData['Лекции'], data, 'weekly-lectures');
+    }
+    
+    return html;
+}
+
+/**
+ * Рендерит общую таблицу для заданного набора оценок.
+ */
+function renderAssessmentTable(assessments, data, tableId = '') {
+    if (assessments.length === 0) return '<p>Нет типов оценок для этой категории.</p>';
+    
+    let tableHtml = `<div class="table-scroll"><table class="grading-table" id="${tableId}"><thead><tr><th>Студент</th>`;
+    
+    // Заголовки столбцов
+    assessments.forEach(ass => {
+        tableHtml += `<th title="${ass.assessment_name}" data-assessment-id="${ass.id}">${ass.assessment_name.replace('Неделя ', 'Н').replace('Практика, ', '').replace('Лекция, ', '')}</th>`;
+    });
+    
+    tableHtml += `</tr></thead><tbody>`;
+    
+    // Строки с полями ввода
+    data.students.forEach(student => {
+        tableHtml += `<tr><td>${student.full_name}</td>`;
+        
+        assessments.forEach(ass => {
+            const assessmentId = ass.id;
+            const currentScore = data.grades[student.student_id] 
+                                && data.grades[student.student_id][assessmentId] 
+                                ? data.grades[student.student_id][assessmentId] 
+                                : '';
+                                
+            tableHtml += `<td><input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            value="${currentScore}"
+                            data-student-id="${student.student_id}" 
+                            data-assessment-id="${assessmentId}"
+                            class="grade-input"
+                            style="width: 50px; text-align: center;"></td>`;
+        });
+        
+        tableHtml += `</tr>`;
+    });
+    
+    tableHtml += `</tbody></table></div>`;
+    
+    return tableHtml;
+}
+
+
+/**
+ * Собирает данные из всех полей ввода и отправляет на сервер.
+ */
+async function saveGrades(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('saveGradesBtn');
+    const saveMessage = document.getElementById('saveMessage');
+    
+    saveBtn.disabled = true;
+    saveMessage.textContent = 'Сохранение...';
+    saveMessage.style.color = '#3498db';
+
+    const courseId = document.getElementById('courseSelect').value;
+    const gradesToSave = [];
+    
+    // Собираем данные из всех полей ввода на форме
+    document.querySelectorAll('.grade-input').forEach(input => {
+        const score = parseFloat(input.value);
+        
+        // Сохраняем только те оценки, которые введены и находятся в допустимом диапазоне
+        if (input.value !== '' && !isNaN(score) && score >= 0 && score <= 100) {
+            gradesToSave.push({
+                student_id: parseInt(input.dataset.studentId),
+                assessment_type_id: parseInt(input.dataset.assessmentId),
+                course_id: parseInt(courseId),
+                score: score
+            });
+        }
+    });
+
+    try {
+        const response = await fetch('/api/teacher/save_assessments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(gradesToSave)
+        });
+        
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            saveMessage.textContent = `Успешно сохранено ${gradesToSave.length} оценок.`;
+            saveMessage.style.color = '#27ae60';
+        } else {
+            throw new Error(result.error || 'Неизвестная ошибка при сохранении.');
+        }
+
+    } catch (error) {
+        console.error("Save error:", error);
+        saveMessage.textContent = `Ошибка сохранения: ${error.message}`;
+        saveMessage.style.color = '#e74c3c';
+    } finally {
+        saveBtn.disabled = false;
+    }
+}
+
+// Функция для управления переключением вкладок
+function activateTab(tabId) {
+    // Снимаем класс 'active' со всех кнопок и панелей
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+    // Добавляем класс 'active' на выбранную кнопку и панель
+    const activeBtn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    const activePane = document.getElementById(`tab-${tabId}-content`);
+    if (activePane) {
+        activePane.classList.add('active');
+    }
+}
+
+// Функция для расчета общей оценки
+function calculateOverallSummary(assessments) {
+    
+    let maxWeight = 0; // Общий возможный вес
+    let totalEarnedWeight = 0; // Вес, который реально проставлен
+
+    assessments.forEach(item => {
+        const weight = parseFloat(item.weight) || 0;
+        const maxScore = parseFloat(item.max_score) || 1; // Деление на 0 опасно, ставим 1
+        // Проверяем, что оценка имеет вес и максимальный балл
+       if (weight > 0) {
+            maxWeight += weight; // Теперь maxWeight точно число!
+            
+            // Если балл проставлен (не NULL), рассчитываем вклад в итоговую оценку
+            if (item.score !== null) {
+                const score = parseFloat(item.score) || 0;
+                
+                // Расчет: (Полученный балл / Макс. балл) * Вес
+                const earnedPoints = (score / maxScore) * weight;
+                totalEarnedWeight += earnedPoints;
+            }
+        }
+    });
+
+    const finalPercent = maxWeight > 0 ? (totalEarnedWeight / maxWeight) * 100 : 0;
+
+    // Функция для определения буквенной оценки (примерная логика)
+    const getLetterGrade = (percent) => {
+        if (percent >= 90) return 'A';
+        if (percent >= 80) return 'B';
+        if (percent >= 70) return 'C';
+        if (percent >= 60) return 'D';
+        return 'F';
+    };
+
+    return {
+        totalEarnedWeight: totalEarnedWeight.toFixed(2),
+        maxWeight: maxWeight.toFixed(2),
+        finalPercent: finalPercent.toFixed(2),
+        letterGrade: getLetterGrade(finalPercent)
+    };
+}
+
+function renderWeeklyTable(data) {
+    if (Object.keys(data).length === 0) {
+        return '<p class="no-results-message">Недельные оценки пока не проставлены.</p>';
+    }
+
+    let html = `
+        <h3 class="assessment-category-title">Недельные Оценки (Вес: 1% каждая)</h3>
+        <table class="assessment-table weekly-table">
+            <thead>
+                <tr>
+                    <th>Неделя</th>
+                    <th>Практика</th>
+                    <th>Лекции</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    // Рисуем до 15 недель
+    for (let i = 1; i <= 15; i++) {
+        const weekData = data[i] || {};
+        const p = weekData.practice;
+        const l = weekData.lecture;
+
+        // Форматирование ячейки: "Балл / Макс. балл"
+        const formatScore = (item) => {
+            if (!item) return '—';
+            // Если score === null, значит оценка не проставлена
+            return item.score !== null 
+                ? `<span class="score-value">${item.score}</span> / ${item.max_score}`
+                : `<span class="score-value not-set">—</span> / ${item.max_score}`;
+        };
+
+        html += `
+            <tr>
+                <td>Неделя ${i}</td>
+                <td>${formatScore(p)}</td>
+                <td>${formatScore(l)}</td>
+            </tr>
+        `;
+    }
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    return html;
+}
+
+function renderAssessmentTable(assessments, title) {
+    if (assessments.length === 0) {
+        return `<p class="no-results-message">Оценки по категории "${title}" пока не проставлены.</p>`;
+    }
+
+    let html = `
+        <h3 class="assessment-category-title">${title}</h3>
+        <table class="assessment-table">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Вес (%)</th>
+                    <th>Макс. Балл</th>
+                    <th>Полученный Балл</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    assessments.forEach(item => {
+        // --- ОБЯЗАТЕЛЬНОЕ ПРЕОБРАЗОВАНИЕ В ЧИСЛО ---
+        const weightValue = parseFloat(item.weight) || 0; // Преобразуем weight
+        const maxScoreValue = parseFloat(item.max_score) || 100; // Преобразуем max_score
+
+        const scoreDisplay = item.score !== null 
+            ? `<span class="score-value">${parseFloat(item.score)}</span>` 
+            : `<span class="score-value not-set">—</span>`;
+        // -------------------------------------------
+            
+        html += `
+            <tr>
+                <td>${item.assessment_name}</td>
+                <td>${weightValue.toFixed(2)}%</td>  <td>${maxScoreValue}</td>
+                <td>${scoreDisplay}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    return html;
+}
+
+function renderSummaryTab(summary) {
+    return `
+        <h2 class="page-header">Общий Результат по Курсу</h2>
+        <div class="summary-box">
+            <p><strong>Общий Вес Курса:</strong> ${summary.maxWeight}%</p>
+            <p><strong>Набранный Вес (Текущий):</strong> ${summary.totalEarnedWeight}%</p>
+            <hr>
+            <p class="final-grade-line">
+                <strong>ИТОГОВЫЙ ПРОЦЕНТ:</strong> 
+                <span class="final-percent-value">${summary.finalPercent}%</span>
+            </p>
+            <p class="final-grade-line">
+                <strong>БУКВЕННАЯ ОЦЕНКА:</strong> 
+                <span class="final-letter-value grade-${summary.letterGrade.toLowerCase()}">${summary.letterGrade}</span>
+            </p>
+        </div>
+        <p class="summary-note">
+            * Итоговый процент рассчитан на основе проставленных оценок и их весов.
+        </p>
+    `;
+}
+
+
+
     </script>
 </body>
 </html>

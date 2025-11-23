@@ -1,0 +1,286 @@
+<div class="content-box profile-container">
+    <h2 id="profileTitle">Личный Профиль</h2>
+
+    <div class="profile-layout">
+        
+        <div class="profile-sidebar">
+            <div class="user-photo-box">
+                <div class="user-circle" style="background-image: url('/assets/default_avatar.png'); background-size: cover;"></div> 
+                <p id="profileUsername">username</p>
+            </div>
+            
+            <button class="profile-nav-btn active" data-section="personal-data">Личные данные</button>
+            <button class="profile-nav-btn" data-section="change-password">Сменить пароль</button>
+            <button class="profile-nav-btn" data-section="change-photo">Сменить фото</button>
+            <button class="profile-nav-btn" data-section="view-messages">Сообщения</button>
+        </div>
+
+        <div class="profile-content">
+            <h3 id="contentHeader">ЛИЧНЫЕ ДАННЫЕ</h3>
+            
+            <div id="personal-data-section" class="profile-section active">
+                <div class="data-field">
+                    <span class="data-label">Имя пользователя:</span>
+                    <span id="displayUsername" class="data-value"></span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">ФИО (Полное имя):</span>
+                    <span id="displayName" class="data-value"></span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">ID пользователя:</span>
+                    <span id="displayId" class="data-value"></span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Группа:</span>
+                    <span id="displayGroup" class="data-value"></span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Специальность/Факультет:</span>
+                    <span id="displayMajor" class="data-value"></span> 
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Год поступления:</span>
+                    <span id="displayEntranceYear" class="data-value"></span>
+                </div>
+            </div>
+
+            <div id="change-password-section" class="profile-section" style="display:none;">
+                <form id="changePasswordForm">
+                    <div class="data-field">
+                        <label class="data-label" for="currentPassword">Текущий пароль:</label>
+                        <input type="password" id="currentPassword" required class="form-input">
+                    </div>
+                    
+                    <div class="data-field">
+                        <label class="data-label" for="newPassword">Новый пароль:</label>
+                        <input type="password" id="newPassword" required class="form-input" minlength="6">
+                    </div>
+                    
+                    <div class="data-field">
+                        <label class="data-label" for="confirmNewPassword">Повторите новый пароль:</label>
+                        <input type="password" id="confirmNewPassword" required class="form-input" minlength="6">
+                    </div>
+
+                    <button type="submit" id="savePasswordBtn" class="action-btn">Сменить пароль</button>
+                </form>
+                
+                <p id="passwordMessage" style="margin-top: 15px;"></p>
+            </div>
+            
+            <div id="change-photo-section" class="profile-section" style="display:none;">
+                <h3 id="photoContentHeader" style="color: white; margin-bottom: 20px;">СМЕНИТЬ ФОТО</h3>
+                <div class="current-photo-container">
+                    <img id="currentAvatar" src="/assets/default_avatar.png" alt="Текущий аватар" class="user-avatar-preview">
+                    <p id="avatarUsernameDisplay" class="username-under-photo" style="color: #bdc3c7;"></p>
+                </div>
+
+                <form id="changePhotoForm" enctype="multipart/form-data">
+                    <div class="file-upload-box">
+                        <label for="avatarFile" class="custom-file-upload" style="color:#333">
+                            Выбрать файл (.png, .jpg)
+                        </label>
+                        <input type="file" id="avatarFile" name="avatar" accept=".png, .jpg, .jpeg" required>
+                        <span id="fileNameDisplay" class="file-name-display" style="color:#333">Файл не выбран</span>
+                    </div>
+                    
+                    <button type="submit" id="uploadPhotoBtn" class="action-btn upload-btn">ЗАГРУЗИТЬ</button>
+                </form>
+                
+                <p id="photoMessage" style="margin-top: 15px;"></p>
+            </div>
+            
+            <div id="view-messages-section" class="profile-section" style="display:none;">
+                
+                <p class="description" style="color: #bdc3c7; margin-bottom: 20px;">
+                    Список всех входящих сообщений от пользователей.
+                </p>
+
+                <div id="messagesListContainer">
+                    <p style="color: #f39c12;">⏳ Загрузка сообщений...</p>
+                </div>
+
+                <p id="messagesStatus" style="margin-top: 15px; color: #e74c3c;"></p>
+                
+            </div>
+            
+            
+        </div> 
+
+    </div>
+</div>
+
+    <style>
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.8); 
+    padding-top: 60px;
+}
+.modal-content {
+    background-color: #2c3e50;
+    margin: 5% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 700px;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close-btn:hover, .close-btn:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+.profile-container {
+    padding: 20px;
+}
+.profile-layout {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+.profile-sidebar {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+}
+.profile-nav-btn {
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    text-align: left;
+}
+.profile-nav-btn.active {
+    background-color: #c0392b;
+    color: white;
+    font-weight: bold;
+    border-color: #c0392b;
+}
+.profile-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #2c3e50;
+    color: white;
+    border-radius: 5px;
+}
+.data-field {
+    margin-bottom: 15px;
+}
+.data-label {
+    display: block;
+    font-weight: bold;
+    color: #bdc3c7;
+    margin-bottom: 3px;
+}
+.data-value {
+    display: block;
+    font-size: 1.1em;
+}
+
+.user-photo-box {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+.user-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #ecf0f1;
+    margin: 0 auto 10px;
+    border: 3px solid #ccc;
+}
+.form-input {
+        width: 95%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        color: #333;
+}
+.action-btn {
+    padding: 10px 20px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.action-btn:hover {
+    background-color: #27ae60;
+}
+.change-avatar-title {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.current-photo-container {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+.user-avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #c0392b;
+}
+.username-under-photo {
+    margin-top: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+.file-upload-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+input[type="file"] {
+    display: none;
+}
+.custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border-radius: 4px 0 0 4px;
+}
+.file-name-display {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-left: none;
+    background-color: white;
+    flex-grow: 1;
+    border-radius: 0 4px 4px 0;
+}
+.upload-btn {
+    width: 100%;
+    background-color: #e67e22;
+}
+.upload-btn:hover {
+    background-color: #d35400;
+}
+
+</style>

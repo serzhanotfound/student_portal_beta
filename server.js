@@ -5,7 +5,9 @@ const path = require("path");
 const { Formidable } = require("formidable");
 const cookie = require('cookie');
 const { register, login, checkSession, logout, saveSchedule, getSchedule, getStudentCourses, getTeacherCourses, 
-    getAllCourses, deleteCourse, saveCourse, getUserProfileData, changeUserPassword, updateAvatarPath} = require("./auth");
+    getAllCourses, deleteCourse, saveCourse, getUserProfileData, changeUserPassword, updateAvatarPath, saveAdminMessage, 
+    getAdminMessages, viewAndMarkMessageRead, deleteMessage, getStudentResultsOverview, getTeacherCoursesAndGroups, 
+    getAssessmentTableData, saveAssessments, getStudentAssessmentDetails, createDefaultAssessmentSchema } = require("./auth");
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', 'avatars');
 
 const mimeTypes = {
@@ -258,6 +260,140 @@ else if (req.method === "POST" && pathname === "/api/upload_avatar") {
     return;
 }
 
+else if (req.method === "POST" && pathname === "/api/send_admin_message") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    console.log('/api/send_admin_message called; session cookie:', sessionId);
+    const user = await checkSession(sessionId); 
+    console.log('Session check result user:', user ? { id: user.id, username: user.username, role: user.role } : null);
+
+    if (!user) {
+        res.writeHead(401);
+        return res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
+    }
+
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+
+    req.on('end', async () => {
+        try {
+            const { subject, message } = JSON.parse(body);
+            console.log('Parsed admin message body:', { subject, message });
+
+            if (!subject || !message) {
+                res.writeHead(400);
+                return res.end(JSON.stringify({ success: false, error: "Заполните тему и текст сообщения." }));
+            }
+            const isSaved = await saveAdminMessage(user.id, subject, message); 
+            console.log('saveAdminMessage returned:', isSaved);
+            
+            if (isSaved) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: "Сообщение успешно отправлено." }));
+            } else {
+                res.writeHead(500);
+                res.end(JSON.stringify({ success: false, error: "Не удалось сохранить сообщение в БД." }));
+            }
+            
+        } catch (error) {
+            console.error("Error processing admin message (DB/Parse):", error);
+            res.writeHead(500);
+            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при отправке сообщения." }));
+        }
+    });
+    return;
+}
+
+else if (req.method === "POST" && pathname === "/api/delete_message") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    // 1. ПРОВЕРКА АВТОРИЗАЦИИ И РОЛИ
+    if (!user || user.role !== 'admin') { 
+        res.writeHead(403, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+
+    req.on('end', async () => {
+        try {
+            const { id } = JSON.parse(body); // Получаем ID из тела запроса
+
+            if (!id) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ success: false, error: "Отсутствует ID сообщения." }));
+            }
+            
+            // 2. УДАЛЕНИЕ В БД
+            const result = await deleteMessage(id); 
+            
+            if (result.success) {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ success: true, message: "Сообщение успешно удалено." }));
+            } else {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ success: false, error: result.error }));
+            }
+
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при удалении сообщения." }));
+        }
+    });
+    return;
+}
+else if (req.method === "POST" && pathname === "/api/change_password") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    // 1. Проверка авторизации
+    if (!user) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+
+    req.on('end', async () => {
+        try {
+            const data = JSON.parse(body);
+            const { currentPassword, newPassword } = data; // Получаем пароли из тела запроса
+
+            if (!currentPassword || !newPassword) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ success: false, error: "Отсутствуют необходимые поля." }));
+                return;
+            }
+            
+            // 2. Вызываем логику смены пароля из auth.js
+            const result = await changeUserPassword(user.id, currentPassword, newPassword);
+
+            if (result.success) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true }));
+            } else {
+                // Возвращаем ошибку, например, "Неверный текущий пароль"
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: result.error }));
+            }
+
+        } catch (error) {
+            console.error("Server error processing password change:", error);
+            res.writeHead(500);
+            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при смене пароля." }));
+        }
+    });
+    return;
+}
 //--------------------------POST---------------------------------
 else if (req.method === "GET" && pathname === "/") {
     const cookies = cookie.parse(req.headers.cookie || '');
@@ -415,6 +551,164 @@ else if (req.method === "GET" && pathname === "/api/get_courses") {
     }
 }
 
+else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_data/')) {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || user.role !== 'teacher') {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
+        return;
+    }
+
+    const parts = pathname.split('/');
+    const courseId = parseInt(parts[4]);
+    const groupName = decodeURIComponent(parts[5]); 
+
+    if (isNaN(courseId) || !groupName) {
+         res.writeHead(400, { 'Content-Type': 'application/json' });
+         res.end(JSON.stringify({ error: 'Некорректные параметры курса/группы.' }));
+         return;
+    }
+
+    const result = await getAssessmentTableData(courseId, groupName); 
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(result));
+    return;
+}
+
+// POST /api/teacher/save_assessments - Сохранение оценок
+else if (req.method === 'POST' && pathname === '/api/teacher/save_assessments') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+
+    req.on('end', async () => {
+        try {
+            const assessments = JSON.parse(body);
+            
+            if (!Array.isArray(assessments)) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'Некорректный формат данных.' }));
+                return;
+            }
+
+            const result = await saveAssessments(assessments);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+
+        } catch (error) {
+            console.error("Server error processing save assessments:", error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при обработке оценок." }));
+        }
+    });
+    return;
+}
+
+else if (req.method === 'GET' && pathname === '/api/teacher/courses') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || user.role !== 'teacher') {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен. Требуется роль Преподавателя.' }));
+        return;
+    }
+
+    const result = await getTeacherCoursesAndGroups(user.id); 
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(result));
+    return;
+}
+
+else if (req.method === "GET" && pathname === "/api/get_admin_messages") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+
+    if (!user) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
+        return;
+    }
+
+    if (user.role !== 'admin') { 
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+        return;
+    }
+
+    try {
+        const messagesData = await getAdminMessages(); 
+        
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ 
+            success: true, 
+            messages: messagesData 
+        }));
+        return;
+
+    } catch (error) {
+        console.error("Error fetching admin messages:", error);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении сообщений." }));
+        return;
+    }
+}
+
+else if (req.method === "GET" && pathname === "/api/view_message") {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const sessionId = cookies.session;
+    const user = await checkSession(sessionId);
+    const messageId = parsedUrl.query.id;
+
+
+    if (!user || user.role !== 'admin') { 
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
+        return;
+    }
+
+    if (!messageId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Отсутствует ID сообщения." }));
+        return;
+    }
+
+    try {
+        const messageData = await viewAndMarkMessageRead(messageId); 
+        
+        if (messageData.success) {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(messageData));
+        } else {
+            res.writeHead(404, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: false, error: messageData.error || "Сообщение не найдено." }));
+        }
+        return;
+
+    } catch (error) {
+        console.error("Error fetching and marking message:", error);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при просмотре сообщения." }));
+        return;
+    }
+}
+
 else if (req.method === "GET" && pathname === "/dashboard") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
@@ -438,6 +732,7 @@ else if (req.method === "GET" && pathname === "/dashboard") {
         return;
     }
 }
+
 else if (req.method === "GET" && pathname === "/api/get_profile_data") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
@@ -465,54 +760,68 @@ else if (req.method === "GET" && pathname === "/api/get_profile_data") {
         res.writeHead(500);
         res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении данных профиля." }));
     }
-} 
-else if (req.method === "POST" && pathname === "/api/change_password") {
-    const cookies = cookie.parse(req.headers.cookie || '');
-    const sessionId = cookies.session;
-    const user = await checkSession(sessionId);
+}
 
-    // 1. Проверка авторизации
-    if (!user) {
-        res.writeHead(401);
-        res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
+else if (req.method === 'GET' && pathname === '/api/student/results/overview') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || user.role !== 'student') {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
         return;
     }
 
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-
-    req.on('end', async () => {
-        try {
-            const data = JSON.parse(body);
-            const { currentPassword, newPassword } = data; // Получаем пароли из тела запроса
-
-            if (!currentPassword || !newPassword) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ success: false, error: "Отсутствуют необходимые поля." }));
-                return;
-            }
-            
-            // 2. Вызываем логику смены пароля из auth.js
-            const result = await changeUserPassword(user.id, currentPassword, newPassword);
-
-            if (result.success) {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true }));
-            } else {
-                // Возвращаем ошибку, например, "Неверный текущий пароль"
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: result.error }));
-            }
-
-        } catch (error) {
-            console.error("Server error processing password change:", error);
-            res.writeHead(500);
-            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при смене пароля." }));
-        }
-    });
+    try {
+        // Предполагаем, что user.group_name и user.id доступны после checkSession
+        const results = await getStudentResultsOverview(user.id, user.group_name);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, data: results }));
+    } catch (error) {
+        console.error("Server error fetching student results overview:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении результатов." }));
+    }
     return;
 }
 
+else if (req.method === 'GET' && pathname.startsWith('/api/student/results/details/')) {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const session = cookies.session;
+    const user = await checkSession(session);
+
+    // Проверяем, что это студент и сессия активна
+    if (!user || user.role !== 'student') {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
+        return;
+    }
+
+    // Парсим courseId из URL: /api/student/results/details/17
+    const parts = pathname.split('/');
+    // ВНИМАНИЕ: Индекс 5 для /api/student/results/details/[courseId]
+    const courseId = parseInt(parts[5]); 
+
+    if (isNaN(courseId)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Некорректный ID курса.' }));
+        return;
+    }
+
+    try {
+        // user.id берется из активной сессии
+        const result = await getStudentAssessmentDetails(user.id, courseId);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+    } catch (error) {
+        console.error("Server error fetching student assessment details:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: "Ошибка сервера при получении деталей оценок." }));
+    }
+    return;
+}
 
 else{
  // статика
