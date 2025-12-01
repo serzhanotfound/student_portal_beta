@@ -52,6 +52,7 @@
         }
 
         /* --- Стили для раздела РЕЗУЛЬТАТЫ --- */
+/* --- Стили для раздела РЕЗУЛЬТАТЫ --- */
 .results-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -264,6 +265,7 @@
 .grade-c { background-color: #f39c12; }
 .grade-d { background-color: #d35400; }
 .grade-f { background-color: #c0392b; }
+
     </style>
 </head>
 <body>
@@ -302,7 +304,7 @@
             </div>
     <script>
 
-let userRole = '';
+let USER_ROLE= 'student';
 
 async function loadProfile() {
     try {
@@ -771,6 +773,7 @@ document.getElementById('profileLink').addEventListener('click', (e) => {
     e.preventDefault();
     loadContent('/profile');
 });
+
 async function loadStudentSchedule() {
             const msgBox = document.getElementById('scheduleMessage');
             const tableBody = document.getElementById('scheduleTableBody');
@@ -1312,34 +1315,34 @@ function handleResultsClick() {
     const contentArea = document.getElementById('contentArea');
     contentArea.innerHTML = ''; // Очищаем контейнер
 
-    // !!! ВАЖНО: Убедитесь, что window.userRole установлен после логина.
-    // Если преподаватель, загружаем интерфейс выставления оценок.
     if (window.userRole === 'teacher' || window.userRole === 'admin') {
         loadTeacherGradingInterface(); 
-    } 
-    // Если студент, загружаем обзор результатов.
-    else if (window.userRole === 'student') {
+    } else if (window.userRole === 'student') {
         loadResultsOverview(); 
-    } 
-    else {
-        contentArea.innerHTML = '<h2 class="page-header">ОШИБКА</h2><p>Неизвестная роль пользователя или данные не загружены.</p>';
+    } else {
+        contentArea.innerHTML = '<h2 class="page-header">ОШИБКА</h2><p>Роль пользователя не определена.</p>';
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
+    // --- 1. Загрузка профиля и роли ---
     try {
-        loadProfileAndSetAvatar(); 
+        // ⬅️ ТЕПЕРЬ МЫ ЖДЕМ ЗАВЕРШЕНИЯ loadProfileAndSetAvatar
+        await loadProfileAndSetAvatar(); 
+        
     } catch (e) {
-        console.error("Ошибка в loadProfileAndSetAvatar:", e);
+        console.error("Ошибка при загрузке профиля/роли:", e);
     }
-    switchProfileSection('personal-data');
+    
+    switchProfileSection('personal-data'); // Эта строка теперь выполнится только после загрузки профиля
 
+    // --- 2. Привязка к меню "Results" ---
     const resultsLink = document.getElementById('resultsLink');
     if (resultsLink) {
         resultsLink.addEventListener('click', (e) => {
             e.preventDefault();
-            // Вызываем наш новый обработчик, который выбирает нужную функцию
+            // На этом этапе window.userRole ГАРАНТИРОВАННО установлен.ы
             handleResultsClick(); 
         });
     }
@@ -1457,9 +1460,9 @@ function switchProfileSection(sectionId) {
     }
 }
 
-/*
- * Генерирует HTML-разметку для одной карточки с результатом.
- */
+
+//Рендер картов курса
+
 function renderResultCard(item) {
     let gradeColor = '#27ae60'; // A
     if (item.letterGrade.startsWith('F')) {
@@ -1516,6 +1519,7 @@ async function loadResultsOverview() {
             return;
         }
 
+        // Рендеринг всех карточек
         let cardsHtml = '';
         resultsData.forEach(item => {
             cardsHtml += renderResultCard(item);
@@ -1541,7 +1545,7 @@ async function showCourseDetailsView(courseId, courseName) {
 
     try {
         const response = await fetch(`/api/student/results/details/${courseId}`);
-        
+
         if (!response.ok) {
             const errorText = await response.text();
             console.error("Сервер вернул ошибку, но не JSON (возможно, HTML):", errorText);
@@ -1561,7 +1565,7 @@ async function showCourseDetailsView(courseId, courseName) {
             return;
         }
 
-        // --- 1. Создание структуры вкладок ---
+        //1. Создание структуры вкладок
         container.innerHTML = `
             <div class="tabs-container">
                 <div class="tabs-nav">
@@ -1579,7 +1583,7 @@ async function showCourseDetailsView(courseId, courseName) {
             </div>
         `;
         
-        // --- 2. Обработка данных и расчет сводки ---
+        // 2. Обработка данных и расчет сводки
         const allAssessments = [];
         Object.keys(groupedData).forEach(key => allAssessments.push(...groupedData[key]));
         
@@ -1588,7 +1592,6 @@ async function showCourseDetailsView(courseId, courseName) {
         
         allAssessments.forEach(item => {
             if (item.category === 'Недельные') {
-                // Извлекаем номер недели (например, 'Неделя 15')
                 const match = item.assessment_name.match(/Неделя (\d+)/);
                 const week = match ? parseInt(match[1]) : 0;
                 
@@ -1611,8 +1614,8 @@ async function showCourseDetailsView(courseId, courseName) {
         // --- 3. Отрисовка контента ---
         document.getElementById('tab-summary-content').innerHTML = renderSummaryTab(summary);
         document.getElementById('tab-weekly-content').innerHTML = renderWeeklyTable(weeklyTransformedData);
-        document.getElementById('tab-srsp-content').innerHTML = renderAssessmentTable(groupedData['СРСП'] || [], 'СРСП');
-        document.getElementById('tab-final-content').innerHTML = renderAssessmentTable(groupedData['Итоговые'] || [], 'Итоговые Оценки');
+        document.getElementById('tab-srsp-content').innerHTML = renderStudentResultsTable(groupedData['СРСП'] || [], 'СРСП');
+        document.getElementById('tab-final-content').innerHTML = renderStudentResultsTable(groupedData['Итоговые'] || [], 'Итоговые Оценки');
 
         // --- 4. Привязка обработчиков клика для вкладок ---
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -1634,11 +1637,7 @@ window.assessmentData = {
 };
 
 
-/**
- * Инициализирует интерфейс выставления оценок для преподавателя в #contentArea.
- */
 async function loadTeacherGradingInterface() {
-
     const container = document.getElementById('contentArea');
     container.innerHTML = `
         <h2 class="page-header">ВЫСТАВЛЕНИЕ ОЦЕНОК</h2>
@@ -1687,7 +1686,6 @@ async function loadTeacherGradingInterface() {
         dataContainer.innerHTML = `<p style="color: red;">Не удалось загрузить курсы: ${error.message}</p>`;
     }
     
-    // Привязка событий
     courseSelect.addEventListener('change', () => updateGroupSelect(courseSelect, groupSelect, loadBtn));
     groupSelect.addEventListener('change', () => toggleLoadButton(groupSelect, loadBtn));
     
@@ -1719,7 +1717,6 @@ function updateGroupSelect(courseSelect, groupSelect, loadBtn) {
     }
 }
 
-/** Переключает состояние кнопки "Загрузить" */
 function toggleLoadButton(groupSelect, loadBtn) {
     loadBtn.disabled = !groupSelect.value;
 }
@@ -1754,6 +1751,94 @@ async function loadAssessmentTables() {
     }
 }
 
+/**
+ * Учительский интерфейс: Загружает и отображает таблицу для выставления оценок.
+ */
+async function showAssessmentTable(courseId, courseName, groupName) {
+    document.getElementById('results-overview-container').style.display = 'none';
+    
+    const detailsSection = document.getElementById('course-details-section');
+    detailsSection.style.display = 'block';
+    
+    document.getElementById('detailsTitle').textContent = `Выставление оценок: ${courseName} (${groupName})`;
+    const container = document.getElementById('details-table-container');
+    container.innerHTML = '<p class="loading-message">Загрузка шаблона оценок и списка студентов...</p>';
+
+    try {
+        const response = await fetch(`/api/teacher/assessment_table_data/${courseId}?group=${groupName}`);
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Ошибка при получении данных с сервера.");
+        }
+
+        const { students, assessments } = result.data;
+
+        if (assessments.length === 0) {
+            container.innerHTML = `<div class="no-results-message">
+                Шаблон оценок для этого курса не настроен. 
+                <button onclick="createSchema(${courseId}, '${courseName}')" class="btn">Создать стандартный шаблон</button>
+            </div>`;
+            return;
+        }
+
+        // 1. Генерация заголовков таблицы
+        let headerHtml = assessments.map(a => `<th data-assessment-id="${a.id}" class="assessment-header">
+            ${a.assessment_name} 
+            <span class="weight-info">(${a.weight}%)</span>
+        </th>`).join('');
+
+        // 2. Генерация строк таблицы (студенты)
+        let bodyHtml = students.map(student => {
+            let rowHtml = assessments.map(a => {
+                // Находим оценку для этого студента и этого типа оценки
+                const currentScore = student.scores[a.id] !== undefined ? student.scores[a.id] : '';
+                
+                return `
+                    <td>
+                        <input type="number" 
+                            class="grade-input" 
+                            data-student-id="${student.id}" 
+                            data-assessment-id="${a.id}" 
+                            value="${currentScore}" 
+                            min="0" max="${a.max_score}" 
+                            placeholder="${a.max_score}">
+                    </td>
+                `;
+            }).join('');
+
+            return `
+                <tr>
+                    <td class="student-name" data-student-id="${student.id}">${student.full_name || student.username}</td>
+                    ${rowHtml}
+                </tr>
+            `;
+        }).join('');
+        
+        // 3.Финальная сборка
+        container.innerHTML = `
+            <div class="save-controls">
+                <button onclick="saveGrades(${courseId})" class="btn-save">Сохранить оценки</button>
+                <span id="save-message" class="save-message"></span>
+            </div>
+            <table class="assessment-grading-table">
+                <thead>
+                    <tr>
+                        <th class="student-name-header">Студент</th>
+                        ${headerHtml}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bodyHtml}
+                </tbody>
+            </table>
+        `;
+        
+    } catch (error) {
+        console.error("Error loading assessment table:", error);
+        container.innerHTML = `<div class="error-message">Не удалось загрузить данные для выставления оценок: ${error.message}</div>`;
+    }
+}
 
 /**
  * Рендерит вкладки (Недельные, СРСП, Итоговые) и таблицы с полями ввода.
@@ -1783,10 +1868,10 @@ function renderGradingInterface(container, data) {
                 ${renderWeeklyAssessments(groupedAssessments['Недельные'], data)}
             </div>
             <div id="tab-srsp" class="tab-content" style="display:none;">
-                ${renderAssessmentTable(groupedAssessments['СРСП'] ? groupedAssessments['СРСП']['СРСП'] : [], data)}
+                ${renderTeacherGradingTable(groupedAssessments['СРСП'] ? groupedAssessments['СРСП']['СРСП'] : [], data)}
             </div>
             <div id="tab-final" class="tab-content" style="display:none;">
-                ${renderAssessmentTable(groupedAssessments['Итоговые'] ? Object.values(groupedAssessments['Итоговые']).flat() : [], data)}
+                ${renderTeacherGradingTable(groupedAssessments['Итоговые'] ? Object.values(groupedAssessments['Итоговые']).flat() : [], data)}
             </div>
             
             <div style="margin-top: 25px; text-align: right;">
@@ -1825,13 +1910,13 @@ function renderWeeklyAssessments(weeklyData, data) {
     // 1. Секция Практики
     if (weeklyData['Практика']) {
         html += '<h4>Практика (1-15 Неделя)</h4>';
-        html += renderAssessmentTable(weeklyData['Практика'], data, 'weekly-practice');
+        html += renderTeacherGradingTable(weeklyData['Практика'], data, 'weekly-practice');
     }
     
     // 2. Секция Лекций
     if (weeklyData['Лекции']) {
         html += '<h4 style="margin-top: 20px;">Лекции (1-15 Неделя)</h4>';
-        html += renderAssessmentTable(weeklyData['Лекции'], data, 'weekly-lectures');
+        html += renderTeacherGradingTable(weeklyData['Лекции'], data, 'weekly-lectures');
     }
     
     return html;
@@ -1840,7 +1925,7 @@ function renderWeeklyAssessments(weeklyData, data) {
 /**
  * Рендерит общую таблицу для заданного набора оценок.
  */
-function renderAssessmentTable(assessments, data, tableId = '') {
+function renderTeacherGradingTable(assessments, data, tableId = '') {
     if (assessments.length === 0) return '<p>Нет типов оценок для этой категории.</p>';
     
     let tableHtml = `<div class="table-scroll"><table class="grading-table" id="${tableId}"><thead><tr><th>Студент</th>`;
@@ -1940,7 +2025,8 @@ async function saveGrades(e) {
     }
 }
 
-// Функция для управления переключением вкладок
+//Подробный просмотр оценок студентам
+
 function activateTab(tabId) {
     // Снимаем класс 'active' со всех кнопок и панелей
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -1957,18 +2043,16 @@ function activateTab(tabId) {
     }
 }
 
-// Функция для расчета общей оценки
 function calculateOverallSummary(assessments) {
-    
-    let maxWeight = 0; // Общий возможный вес
-    let totalEarnedWeight = 0; // Вес, который реально проставлен
+    let totalEarnedWeight = 0; 
+    let maxWeight = 0;         
 
     assessments.forEach(item => {
         const weight = parseFloat(item.weight) || 0;
-        const maxScore = parseFloat(item.max_score) || 1; // Деление на 0 опасно, ставим 1
-        // Проверяем, что оценка имеет вес и максимальный балл
-       if (weight > 0) {
-            maxWeight += weight; // Теперь maxWeight точно число!
+        const maxScore = parseFloat(item.max_score) || 1; 
+
+        if (weight > 0) {
+            maxWeight += weight;
             
             // Если балл проставлен (не NULL), рассчитываем вклад в итоговую оценку
             if (item.score !== null) {
@@ -1981,9 +2065,8 @@ function calculateOverallSummary(assessments) {
         }
     });
 
-    const finalPercent = maxWeight > 0 ? (totalEarnedWeight / maxWeight) * 100 : 0;
+    const finalPercent = totalEarnedWeight > 0 ? (totalEarnedWeight / maxWeight) * 100 : 0;
 
-    // Функция для определения буквенной оценки (примерная логика)
     const getLetterGrade = (percent) => {
         if (percent >= 90) return 'A';
         if (percent >= 80) return 'B';
@@ -2050,7 +2133,7 @@ function renderWeeklyTable(data) {
     return html;
 }
 
-function renderAssessmentTable(assessments, title) {
+function renderStudentResultsTable(assessments, title) {
     if (assessments.length === 0) {
         return `<p class="no-results-message">Оценки по категории "${title}" пока не проставлены.</p>`;
     }
@@ -2070,15 +2153,13 @@ function renderAssessmentTable(assessments, title) {
     `;
 
     assessments.forEach(item => {
-        // --- ОБЯЗАТЕЛЬНОЕ ПРЕОБРАЗОВАНИЕ В ЧИСЛО ---
-        const weightValue = parseFloat(item.weight) || 0; // Преобразуем weight
-        const maxScoreValue = parseFloat(item.max_score) || 100; // Преобразуем max_score
+        const weightValue = parseFloat(item.weight) || 0;
+        const maxScoreValue = parseFloat(item.max_score) || 100;
 
         const scoreDisplay = item.score !== null 
             ? `<span class="score-value">${parseFloat(item.score)}</span>` 
             : `<span class="score-value not-set">—</span>`;
-        // -------------------------------------------
-            
+
         html += `
             <tr>
                 <td>${item.assessment_name}</td>
@@ -2117,9 +2198,6 @@ function renderSummaryTab(summary) {
         </p>
     `;
 }
-
-
-
     </script>
 </body>
 </html>

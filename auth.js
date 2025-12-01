@@ -5,7 +5,8 @@ module.exports = { register, login, checkSession, logout,
     getAllCourses, saveCourse, deleteCourse, getUserProfileData, 
     changeUserPassword, updateAvatarPath, saveAdminMessage, getAdminMessages, 
     viewAndMarkMessageRead, deleteMessage, getStudentResultsOverview, getTeacherCoursesAndGroups, 
-    getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema, getStudentAssessmentDetails, createDefaultAssessmentSchema };
+    getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema,  
+    createDefaultAssessmentSchema, getStudentAssessmentDetails };
 
 function hashPassword(password) {
     return crypto.createHash("sha256").update(password).digest("hex");
@@ -241,7 +242,7 @@ async function saveCourse(courseData) {
 
     try {
         if (id) {
-            // Бар курсты жанартады
+            // Обновление существующего курса
             const query = `
                 UPDATE courses 
                 SET name = ?, description = ?, credits = ?, teacher_id = ?, group_name = ?, semester = ?
@@ -251,7 +252,7 @@ async function saveCourse(courseData) {
             return { success: true };
 
         } else {
-            // Жана курс косады
+            // Добавление нового курса
             const insertCourseQuery = `
                 INSERT INTO courses (name, description, credits, teacher_id, group_name, semester) 
                 VALUES (?, ?, ?, ?, ?, ?);
@@ -261,7 +262,7 @@ async function saveCourse(courseData) {
             
             const newCourseId = result.insertId;
             
-            // *** Баға түрлерінің стандартты шаблонын жасау функциясын шақырамыз ***
+            // *** НОВЫЙ ШАГ: Вызываем функцию создания шаблона оценок ***
             if (newCourseId) {
                 await createDefaultAssessmentSchema(newCourseId);
             }
@@ -486,17 +487,18 @@ async function getStudentResultsOverview(userId, groupName, semesterCode = null)
     try {
         const query = `
             SELECT 
-                c.id AS course_id,
-                c.name AS course_name,
-                u.username AS teacher_name,
-                sg.final_score,
-                sg.letter_grade
+                c.id AS course_id,              -- ID курса (нужен для кликабельности)
+                c.name AS course_name,          -- Название предмета (верх блока)
+                u.username AS teacher_name,     -- Имя преподавателя (низ блока)
+                sg.final_score,                 -- Текущий рейтинг
+                sg.letter_grade                 -- Буквенная оценка (центр блока)
             FROM 
                 courses c
             JOIN 
-                users u ON c.teacher_id = u.id
+                users u ON c.teacher_id = u.id  -- 1. Получаем имя преподавателя
             LEFT JOIN 
                 student_grades sg ON c.id = sg.course_id AND sg.user_id = ? 
+                                                -- 2. Получаем оценку конкретного студента
             WHERE 
                 c.group_name = ?
                 ${semesterCode ? 'AND sg.semester_code = ?' : ''} 
@@ -506,17 +508,21 @@ async function getStudentResultsOverview(userId, groupName, semesterCode = null)
         
         let params = [userId, groupName];
         if (semesterCode) {
+             // Если передан семестр, добавляем его в параметры запроса
             params.push(semesterCode);
         }
 
+        // Используем деструктуризацию для получения массива строк (rows)
         const [rows] = await pool.query(query, params); 
         
+        // Преобразуем final_score в более удобный формат, если нужно
         return rows.map(row => ({
             courseId: row.course_id,
             title: row.course_name,
             teacherName: row.teacher_name,
+            // Если final_score null (студент еще не получил оценку), ставим 'N/A'
             currentRating: row.final_score !== null ? `${parseFloat(row.final_score).toFixed(2)}%` : 'Нет данных',
-            letterGrade: row.letter_grade || '-'
+            letterGrade: row.letter_grade || '-' // Если оценка null, ставим прочерк
         }));
 
     } catch (error) {
@@ -526,8 +532,7 @@ async function getStudentResultsOverview(userId, groupName, semesterCode = null)
 }
 
 /**
- * Создает стандартный набор типов оценок (шаблон) для нового курса.
- * Схема: 15 Практика (15*1%), 15 Лекции (15*1%), 4 СРСП (4*5%), 1-РК (20%), 2-РК (20%), Сессия (10%).
+ * 15 Практика (15*1%), 15 Лекции (15*1%), 4 СРСП (4*5%), 1-РК (20%), 2-РК (20%), Сессия (10%).
  * Общий вес: 100%.
  * @param {number} courseId
  */
@@ -535,28 +540,28 @@ async function createDefaultAssessmentSchema(courseId) {
     const defaultAssessments = [];
     const maxScore = 100;
 
-    // 1. Недельные оценки (Практика и Лекции)
+    // Недельные оценки (Практика и Лекции)
     const weeklyWeight = 1.00; // 1%
     for (let i = 1; i <= 15; i++) {
-        
+        // Практика
         defaultAssessments.push({
             name: `Практика, Неделя ${i}`,
             category: 'Недельные',
-            subcategory: 'Практика', // Используется для разделения таблиц на клиенте
+            subcategory: 'Практика', 
             weight: weeklyWeight,
             max_score: maxScore
         });
-        
+        // Лекции
         defaultAssessments.push({
             name: `Лекция, Неделя ${i}`,
             category: 'Недельные',
-            subcategory: 'Лекции', // Используется для разделения таблиц на клиенте
+            subcategory: 'Лекции', 
             weight: weeklyWeight,
             max_score: maxScore
         });
     }
 
-    // 2. СРСП (Самостоятельная Работа Студента с Преподавателем)
+    // СРСП
     const srspWeight = 5.00; // 5%
     for (let i = 1; i <= 4; i++) {
         defaultAssessments.push({
@@ -568,7 +573,7 @@ async function createDefaultAssessmentSchema(courseId) {
         });
     }
 
-    // 3. Итоговые оценки (РК и Сессия)
+    // Итоговые оценки (РК и Сессия)
     defaultAssessments.push({ name: '1-РК', category: 'Итоговые', subcategory: '1-РК', weight: 20.00, max_score: maxScore });
     defaultAssessments.push({ name: '2-РК', category: 'Итоговые', subcategory: '2-РК', weight: 20.00, max_score: maxScore });
     defaultAssessments.push({ name: 'Сессия', category: 'Итоговые', subcategory: 'Сессия', weight: 10.00, max_score: maxScore });
@@ -581,7 +586,6 @@ async function createDefaultAssessmentSchema(courseId) {
     `;
 
     try {
-        // Массовая вставка всех 37 типов оценок
         await Promise.all(defaultAssessments.map(async (item) => {
             await pool.query(insertQuery, [
                 courseId,
@@ -620,7 +624,7 @@ async function getTeacherCoursesAndGroups(teacherId) {
         
         const [rows] = await pool.query(query, [teacherId]);
 
-        // Группируем результаты по курсам для удобства на клиенте
+        // Логика группировки для клиента
         const coursesMap = {};
         rows.forEach(row => {
             if (!coursesMap[row.course_id]) {
@@ -630,13 +634,10 @@ async function getTeacherCoursesAndGroups(teacherId) {
                     groups: new Set()
                 };
             }
-            // Группа может быть NULL, но мы ее добавляем, если она есть
             if (row.group_name) {
                 coursesMap[row.course_id].groups.add(row.group_name);
             }
         });
-
-        // Преобразуем Set обратно в Array и получаем финальный список
         const result = Object.values(coursesMap).map(course => ({
             ...course,
             groups: Array.from(course.groups)
@@ -652,7 +653,6 @@ async function getTeacherCoursesAndGroups(teacherId) {
 
 /**
  * Получает список студентов в группе, все типы оценок по курсу и уже проставленные баллы.
- * ЭТО ВТОРАЯ ИЗ ВАШИХ НОВЫХ ФУНКЦИЙ!
  * @param {number} courseId
  * @param {string} groupName
  */
@@ -662,7 +662,8 @@ async function getAssessmentTableData(courseId, groupName) {
         const studentsQuery = `
             SELECT 
                 id AS student_id, 
-                full_name 
+                full_name,
+                username
             FROM 
                 users 
             WHERE 
@@ -731,7 +732,6 @@ async function getAssessmentTableData(courseId, groupName) {
 
 /**
  * Сохраняет (обновляет или вставляет) массив оценок, проставленных преподавателем.
- * ЭТО ТРЕТЬЯ ИЗ ВАШИХ НОВЫХ ФУНКЦИЙ!
  */
 async function saveAssessments(assessments) {
     if (!assessments || assessments.length === 0) {
@@ -816,3 +816,7 @@ async function getStudentAssessmentDetails(studentId, courseId) {
         return { success: false, error: "Ошибка сервера при получении детальных оценок." };
     }
 }
+// ----------------------------------------------------
+
+// ❗ Обязательно добавьте эту функцию в экспорт в начале auth.js:
+// module.exports = { /* ... существующие функции ... */, getStudentAssessmentDetails };

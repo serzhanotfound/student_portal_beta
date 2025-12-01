@@ -7,7 +7,7 @@ const cookie = require('cookie');
 const { register, login, checkSession, logout, saveSchedule, getSchedule, getStudentCourses, getTeacherCourses, 
     getAllCourses, deleteCourse, saveCourse, getUserProfileData, changeUserPassword, updateAvatarPath, saveAdminMessage, 
     getAdminMessages, viewAndMarkMessageRead, deleteMessage, getStudentResultsOverview, getTeacherCoursesAndGroups, 
-    getAssessmentTableData, saveAssessments, getStudentAssessmentDetails, createDefaultAssessmentSchema } = require("./auth");
+    getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema, getStudentAssessmentDetails } = require("./auth");
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', 'avatars');
 
 const mimeTypes = {
@@ -394,6 +394,45 @@ else if (req.method === "POST" && pathname === "/api/change_password") {
     });
     return;
 }
+
+else if (req.method === 'POST' && pathname === '/api/teacher/save_assessments') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+
+    req.on('end', async () => {
+        try {
+            const assessments = JSON.parse(body);
+            
+            if (!Array.isArray(assessments)) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'Некорректный формат данных.' }));
+                return;
+            }
+
+            const result = await saveAssessments(assessments);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+
+        } catch (error) {
+            console.error("Server error processing save assessments:", error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при обработке оценок." }));
+        }
+    });
+    return;
+}
 //--------------------------POST---------------------------------
 else if (req.method === "GET" && pathname === "/") {
     const cookies = cookie.parse(req.headers.cookie || '');
@@ -578,46 +617,6 @@ else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_da
     return;
 }
 
-// POST /api/teacher/save_assessments - Сохранение оценок
-else if (req.method === 'POST' && pathname === '/api/teacher/save_assessments') {
-    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
-    const user = await checkSession(session);
-
-    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
-        res.writeHead(403, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
-        return;
-    }
-
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-
-    req.on('end', async () => {
-        try {
-            const assessments = JSON.parse(body);
-            
-            if (!Array.isArray(assessments)) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'Некорректный формат данных.' }));
-                return;
-            }
-
-            const result = await saveAssessments(assessments);
-
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(result));
-
-        } catch (error) {
-            console.error("Server error processing save assessments:", error);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: "Ошибка сервера при обработке оценок." }));
-        }
-    });
-    return;
-}
-
 else if (req.method === 'GET' && pathname === '/api/teacher/courses') {
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
@@ -773,7 +772,6 @@ else if (req.method === 'GET' && pathname === '/api/student/results/overview') {
     }
 
     try {
-        // Предполагаем, что user.group_name и user.id доступны после checkSession
         const results = await getStudentResultsOverview(user.id, user.group_name);
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -787,20 +785,21 @@ else if (req.method === 'GET' && pathname === '/api/student/results/overview') {
 }
 
 else if (req.method === 'GET' && pathname.startsWith('/api/student/results/details/')) {
+
     const cookies = cookie.parse(req.headers.cookie || '');
     const session = cookies.session;
     const user = await checkSession(session);
 
-    // Проверяем, что это студент и сессия активна
+    console.log(`[DEBUG] Session ID: ${session}`);
+    console.log('[DEBUG] User object from checkSession:', user);
+
     if (!user || user.role !== 'student') {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
         return;
     }
 
-    // Парсим courseId из URL: /api/student/results/details/17
     const parts = pathname.split('/');
-    // ВНИМАНИЕ: Индекс 5 для /api/student/results/details/[courseId]
     const courseId = parseInt(parts[5]); 
 
     if (isNaN(courseId)) {
