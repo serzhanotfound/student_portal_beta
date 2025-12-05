@@ -2,10 +2,10 @@
 -- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: MySQL-8.4
--- Generation Time: Oct 19, 2025 at 09:14 PM
--- Server version: 8.4.6
--- PHP Version: 8.4.12
+-- Хост: MySQL-8.4
+-- Время создания: Дек 04 2025 г., 11:20
+-- Версия сервера: 8.4.6
+-- Версия PHP: 8.4.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `db_01`
+-- База данных: `db_01`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `schedule`
+-- Структура таблицы `schedule`
 --
 
 CREATE TABLE `schedule` (
@@ -38,7 +38,7 @@ CREATE TABLE `schedule` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `schedule`
+-- Дамп данных таблицы `schedule`
 --
 
 INSERT INTO `schedule` (`id`, `teacher_id`, `group_name`, `day_of_week`, `time_slot`, `course`, `classroom`) VALUES
@@ -82,11 +82,11 @@ INSERT INTO `schedule` (`id`, `teacher_id`, `group_name`, `day_of_week`, `time_s
 (82, 33, 'Мехатроника', 'Понедельник', '16:50 - 17:40', 'German-D1', 'E107');
 
 --
--- Indexes for dumped tables
+-- Индексы сохранённых таблиц
 --
 
 --
--- Indexes for table `schedule`
+-- Индексы таблицы `schedule`
 --
 ALTER TABLE `schedule`
   ADD PRIMARY KEY (`id`),
@@ -94,21 +94,21 @@ ALTER TABLE `schedule`
   ADD KEY `teacher_id` (`teacher_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT для сохранённых таблиц
 --
 
 --
--- AUTO_INCREMENT for table `schedule`
+-- AUTO_INCREMENT для таблицы `schedule`
 --
 ALTER TABLE `schedule`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
--- Constraints for dumped tables
+-- Ограничения внешнего ключа сохраненных таблиц
 --
 
 --
--- Constraints for table `schedule`
+-- Ограничения внешнего ключа таблицы `schedule`
 --
 ALTER TABLE `schedule`
   ADD CONSTRAINT `schedule_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

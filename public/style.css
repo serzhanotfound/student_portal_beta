@@ -5,7 +5,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-image: url(./FreEDU.jpg);
+            background-image: url(./AkademHUB.png);
         }
         .container {
             width: 350px;
@@ -27,21 +27,21 @@
             border-radius: 4px;
         }
         button {
-            background-color: #007bff;
+            background-color: #807170;
             color: white;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #c72f24;
         }
         .message {
             margin-top: 10px;
             padding: 10px;
             border-radius: 4px;
             background-color: #e0f7fa;
-            color: #007bff;
+            color: black;
             display: none; 
         }
         
@@ -50,7 +50,7 @@
             margin-top: 20px;
         }
         .switch-link span {
-            color: #007bff;
+            color: #ffffff;
             cursor: pointer;
             text-decoration: underline;
         }
@@ -60,4 +60,8 @@
         }
         h2 {
             color: #c9d6d6;
+        }
+
+        #loginmessage {
+            color : black;
         }

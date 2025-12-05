@@ -7,7 +7,8 @@ const cookie = require('cookie');
 const { register, login, checkSession, logout, saveSchedule, getSchedule, getStudentCourses, getTeacherCourses, 
     getAllCourses, deleteCourse, saveCourse, getUserProfileData, changeUserPassword, updateAvatarPath, saveAdminMessage, 
     getAdminMessages, viewAndMarkMessageRead, deleteMessage, getStudentResultsOverview, getTeacherCoursesAndGroups, 
-    getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema, getStudentAssessmentDetails } = require("./auth");
+    getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema, getStudentAssessmentDetails, getAllCoursesAndGroupsForAdmin, 
+    getAcademicEvents, saveAcademicEvent, deleteAcademicEvent } = require("./auth");
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', 'avatars');
 
 const mimeTypes = {
@@ -17,6 +18,41 @@ const mimeTypes = {
     ".png": "image/png",
     ".jpg": "image/jpeg"
 };
+/**
+ * Асинхронно считывает и парсит тело HTTP-запроса (JSON).
+ * @param {object} req - Объект запроса Node.js.
+ * @returns {Promise<object>} - Распарсенное тело запроса.
+ */
+async function parseRequestBody(req) {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        
+        // 1. Сбор данных по частям
+        req.on('data', chunk => {
+            body += chunk.toString(); 
+        });
+
+        // 2. Парсинг после завершения сбора
+        req.on('end', () => {
+            if (body) {
+                try {
+                    // Пытаемся распарсить JSON
+                    resolve(JSON.parse(body));
+                } catch (error) {
+                    // Если не JSON, возвращаем ошибку
+                    reject(new Error('Invalid JSON in request body'));
+                }
+            } else {
+                // Если тело пустое
+                resolve({});
+            }
+        });
+
+        req.on('error', err => {
+            reject(err);
+        });
+    });
+}
 
 //----------------------------------------
 
@@ -433,6 +469,58 @@ else if (req.method === 'POST' && pathname === '/api/teacher/save_assessments') 
     });
     return;
 }
+
+else if (req.method === 'POST' && pathname === '/api/admin/calendar/save') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+    
+    // 1. СТРОГАЯ ПРОВЕРКА РОЛИ: ТОЛЬКО АДМИН
+    if (!user || user.role !== 'admin') {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Доступ запрещен. Требуются права Администратора.' }));
+        return;
+    }
+
+    // 2. Парсинг тела запроса (предполагаем, что у вас есть функция для этого)
+    let body = await parseRequestBody(req); // Используйте вашу функцию парсинга
+    
+    try {
+        const result = await saveAcademicEvent(body); 
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+
+    } catch (error) {
+        console.error("Server error saving academic event:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Ошибка сервера при сохранении события.' }));
+    }
+    return;
+}
+
+else if (req.method === 'POST' && pathname === '/api/admin/calendar/delete') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    if (!user || user.role !== 'admin') {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Доступ запрещен.' }));
+        return;
+    }
+
+    let body = await parseRequestBody(req); // Используйте вашу функцию парсинга
+
+    try {
+        const result = await deleteAcademicEvent(body.id);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+    } catch (error) {
+        console.error("Server error deleting academic event:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Ошибка сервера при удалении.' }));
+    }
+    return;
+}
 //--------------------------POST---------------------------------
 else if (req.method === "GET" && pathname === "/") {
     const cookies = cookie.parse(req.headers.cookie || '');
@@ -474,7 +562,7 @@ else if(req.method === "GET" && pathname === "/api/get_schedule") {
     if(user.role === 'student') {
         groupName = user.group_name;
 
-    } else if(user.role === 'teacher') {
+    } else if(user.role === 'teacher' || user.role === 'admin') {
         // Учитель может посматривать любую группу, которую он выберет.
         // Для простоты, здесь мы будем запрашивать группу из URL-параметров.
         // /api/get_schedule?group=Логистика
@@ -593,42 +681,78 @@ else if (req.method === "GET" && pathname === "/api/get_courses") {
 else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_data/')) {
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
-
-    if (!user || user.role !== 'teacher') {
+    
+    // 1. Проверка авторизации
+    if (!user) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
+        return;
+    }
+    
+    // ⭐ 2. Проверка роли (разрешаем Admin И Teacher)
+    if (user.role !== 'teacher' && user.role !== 'admin') {
         res.writeHead(403, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Доступ запрещен.' }));
+        res.end(JSON.stringify({ success: false, error: 'Доступ запрещен.' }));
         return;
     }
 
     const parts = pathname.split('/');
-    const courseId = parseInt(parts[4]);
-    const groupName = decodeURIComponent(parts[5]); 
+    // Проверьте индексы! Если маршрут /api/teacher/assessment_data/123/GroupA, то CourseID=4, GroupName=5
+    const courseId = parseInt(parts[4]); 
+    const groupName = parts[5] ? decodeURIComponent(parts[5]) : null; 
 
     if (isNaN(courseId) || !groupName) {
-         res.writeHead(400, { 'Content-Type': 'application/json' });
-         res.end(JSON.stringify({ error: 'Некорректные параметры курса/группы.' }));
-         return;
-    }
-
-    const result = await getAssessmentTableData(courseId, groupName); 
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(result));
-    return;
-}
-
-else if (req.method === 'GET' && pathname === '/api/teacher/courses') {
-    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
-    const user = await checkSession(session);
-
-    if (!user || user.role !== 'teacher') {
-        res.writeHead(403, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Доступ запрещен. Требуется роль Преподавателя.' }));
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Некорректный запрос.' }));
         return;
     }
 
-    const result = await getTeacherCoursesAndGroups(user.id); 
+    try {
+        // Вызываем функцию БД, которая не зависит от teacherId (см. Шаг 2)
+        const result = await getAssessmentTableData(courseId, groupName); 
 
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+
+    } catch (error) {
+        console.error("Server error loading assessment data:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Ошибка сервера при загрузке данных.' }));
+    }
+    return;
+}
+
+else if (req.method === 'GET' && pathname === '/api/teacher/courses') { 
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    let result;
+    
+    // 1. Проверка авторизации
+    if (!user) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
+        return;
+    }
+
+    // 2. Логика для Администратора: загрузить ВСЕ курсы
+    if (user.role === 'admin') {
+        // Мы вызываем новую функцию, созданную на Шаге 1
+        result = await getAllCoursesAndGroupsForAdmin(); 
+    } 
+    // 3. Логика для Преподавателя: загрузить только его курсы
+    else if (user.role === 'teacher') {
+        // Вызываем существующую функцию
+        result = await getTeacherCoursesAndGroups(user.id);
+    } 
+    // 4. Доступ запрещен для всех остальных ролей (Student)
+    else {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Доступ запрещен. Требуется роль Преподавателя или Администратора.' }));
+        return;
+    }
+
+    // Отправка данных (единая точка выхода)
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(result));
     return;
@@ -821,6 +945,34 @@ else if (req.method === 'GET' && pathname.startsWith('/api/student/results/detai
     }
     return;
 }
+
+else if (req.method === 'GET' && pathname === '/api/calendar/events') {
+    const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
+    const user = await checkSession(session);
+
+    // 1. Проверка авторизации: доступен всем авторизованным
+    if (!user) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
+        return;
+    }
+
+    try {
+        // 2. Вызываем функцию из auth.js
+        const result = await getAcademicEvents();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+
+    } catch (error) {
+        console.error("Server error loading academic events:", error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Ошибка сервера при загрузке календаря.' }));
+    }
+    return;
+}
+
+
 
 else{
  // статика

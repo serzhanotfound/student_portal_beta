@@ -2,10 +2,10 @@
 -- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: MySQL-8.4
--- Generation Time: Oct 19, 2025 at 09:14 PM
--- Server version: 8.4.6
--- PHP Version: 8.4.12
+-- Хост: MySQL-8.4
+-- Время создания: Дек 04 2025 г., 11:21
+-- Версия сервера: 8.4.6
+-- Версия PHP: 8.4.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `db_01`
+-- База данных: `db_01`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sessions`
+-- Структура таблицы `sessions`
 --
 
 CREATE TABLE `sessions` (
@@ -35,7 +35,7 @@ CREATE TABLE `sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `sessions`
+-- Дамп данных таблицы `sessions`
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `session_id`, `expires_at`) VALUES
@@ -66,35 +66,79 @@ INSERT INTO `sessions` (`id`, `user_id`, `session_id`, `expires_at`) VALUES
 (149, 34, '9f7bfba3c5f162b7b1a67f3edd2a7341', '2025-10-19 09:53:42'),
 (150, 34, 'c9adeb19ed1908ae9bfdcbda9d8ef28b', '2025-10-19 11:48:05'),
 (151, 34, '9b0583c2f0795646a08c42890b1a5bf8', '2025-10-19 13:18:34'),
-(152, 34, '6a4f2533135de6ddff78a7230454ed8c', '2025-10-19 14:32:17');
+(152, 34, '6a4f2533135de6ddff78a7230454ed8c', '2025-10-19 14:32:17'),
+(162, 33, '1c1bb3617635f385a037eb939b1dadba', '2025-10-20 14:41:18'),
+(163, 34, '99b0ec1a04176b444d369c9e4316f845', '2025-10-24 11:56:24'),
+(166, 38, '790a4b77fce748651d28bcbf8be2d4e6', '2025-10-24 14:43:22'),
+(170, 34, '28b4bc63f4cda3741cc37d221800f7d5', '2025-10-31 14:26:46'),
+(172, 33, 'cdd68fed732f8d58178ed92fd16628a0', '2025-11-02 18:56:47'),
+(175, 33, '2be9f2d247400fd5aebe5ef6ea547f50', '2025-11-02 22:11:47'),
+(176, 34, 'a34a9e7a1afbf6cfc7ee2bebc417d91c', '2025-11-03 00:23:30'),
+(177, 34, '9f5d28651b27616e41e8afe3cc0ac972', '2025-11-03 01:32:45'),
+(178, 34, 'c60156b6a0a4b4d58f1aed856fb84a30', '2025-11-03 12:14:28'),
+(179, 34, 'fcdffda9645bcc24ed6a7723da2ce3ab', '2025-11-03 13:18:01'),
+(186, 34, '867f5b5e04a9faf6251494f891c69815', '2025-11-03 15:21:57'),
+(199, 34, '14d9fdcb38ba1e666002f30c78bdae78', '2025-11-10 15:20:06'),
+(205, 38, '16cfb3cb2cab191eae44908335dd2ccf', '2025-11-14 10:03:03'),
+(206, 38, 'd6d281b38cdbeeaedbcb909e8163b0f9', '2025-11-14 11:16:31'),
+(207, 38, '1b17f8d9383f1398820746f07c7ea4a4', '2025-11-14 12:19:56'),
+(210, 38, '5420115b5df2a85e4c1c2d9821d19be1', '2025-11-14 13:49:07'),
+(222, 34, '8c738226cf274dbef38d58a1f3a63dbd', '2025-11-16 21:52:19'),
+(229, 38, '093aedb4d1d96ba0e406c9457e27c992', '2025-11-17 12:59:13'),
+(239, 35, 'ff07662c74b2885128712bb8f1161526', '2025-11-23 12:24:57'),
+(240, 33, 'a839b71cb883388d5658a5089cb2e797', '2025-11-23 13:38:46'),
+(243, 33, '8158e268bfea8e8401392349c1947285', '2025-11-23 14:55:02'),
+(249, 33, 'b4298da3d473d9cff2454fe8ca1df158', '2025-11-23 16:44:40'),
+(260, 34, 'bfdf562c2fdcdb494dd0738862e655e4', '2025-11-23 18:52:33'),
+(262, 34, '6574f8bd40da9cc41e392a3c12f180a6', '2025-11-23 20:27:53'),
+(263, 34, '6977459e92e3e1c758d6ddaed360b2b4', '2025-11-23 20:41:26'),
+(269, 33, '314337222788966a979ba4e2dfac9d53', '2025-11-24 12:20:16'),
+(270, 33, 'd35bbd90e5f5f20b8d241326ec54f88e', '2025-11-24 13:45:33'),
+(273, 33, 'd5e6422405a097fc9c7423b819634798', '2025-11-24 14:01:43'),
+(277, 33, '54deaf6b872911bf711ec1a1fdf30289', '2025-11-27 13:02:01'),
+(279, 34, '39c5a3dc321e970738fb982bb763aa75', '2025-11-27 13:07:27'),
+(283, 33, '620c62ab66afaffea8bdb4f67b786636', '2025-11-27 18:53:36'),
+(285, 33, 'ca3ddf4cc6773f3b14f8c1f4f1b27804', '2025-11-28 00:14:29'),
+(287, 33, '350919f130e974366d5e402463affb18', '2025-11-28 01:37:55'),
+(292, 33, 'ca43d5dc872281d6bf9af39dae7f7ac0', '2025-11-28 11:53:40'),
+(295, 34, 'c5fc231691761c39ca0611a268329507', '2025-11-28 14:06:57'),
+(302, 34, '77e4cf0acd69689a3569f870aaf99cf9', '2025-11-28 15:27:01'),
+(310, 38, 'de79ff9ce5d2ace0aca73462e13c119f', '2025-12-01 14:35:26'),
+(311, 34, '0d4e952b12a8dc4de8dc3def7d5b85e9', '2025-12-01 19:03:00'),
+(312, 34, '0775192c9307b2ac373e438210eaa004', '2025-12-01 20:08:49'),
+(315, 34, 'a54336c363ad42b328d50ef540c959a3', '2025-12-01 22:35:49'),
+(320, 38, 'df9613caac02cff680f30756ba7b640f', '2025-12-02 02:52:11'),
+(325, 38, '96f63e812f51dce8d4dfb58a05f9e21d', '2025-12-02 09:51:32'),
+(334, 38, '90a44af8af91608da5683b4c52446828', '2025-12-02 12:26:05'),
+(336, 34, 'e84d93215feed258285442aa18464fff', '2025-12-03 12:39:24');
 
 --
--- Indexes for dumped tables
+-- Индексы сохранённых таблиц
 --
 
 --
--- Indexes for table `sessions`
+-- Индексы таблицы `sessions`
 --
 ALTER TABLE `sessions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT для сохранённых таблиц
 --
 
 --
--- AUTO_INCREMENT for table `sessions`
+-- AUTO_INCREMENT для таблицы `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=337;
 
 --
--- Constraints for dumped tables
+-- Ограничения внешнего ключа сохраненных таблиц
 --
 
 --
--- Constraints for table `sessions`
+-- Ограничения внешнего ключа таблицы `sessions`
 --
 ALTER TABLE `sessions`
   ADD CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

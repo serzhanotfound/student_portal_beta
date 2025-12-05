@@ -6,7 +6,7 @@ module.exports = { register, login, checkSession, logout,
     changeUserPassword, updateAvatarPath, saveAdminMessage, getAdminMessages, 
     viewAndMarkMessageRead, deleteMessage, getStudentResultsOverview, getTeacherCoursesAndGroups, 
     getAssessmentTableData, saveAssessments, createDefaultAssessmentSchema,  
-    createDefaultAssessmentSchema, getStudentAssessmentDetails };
+    createDefaultAssessmentSchema, getStudentAssessmentDetails, getAllCoursesAndGroupsForAdmin, getAcademicEvents, saveAcademicEvent, deleteAcademicEvent };
 
 function hashPassword(password) {
     return crypto.createHash("sha256").update(password).digest("hex");
@@ -816,7 +816,135 @@ async function getStudentAssessmentDetails(studentId, courseId) {
         return { success: false, error: "Ошибка сервера при получении детальных оценок." };
     }
 }
-// ----------------------------------------------------
 
-// ❗ Обязательно добавьте эту функцию в экспорт в начале auth.js:
-// module.exports = { /* ... существующие функции ... */, getStudentAssessmentDetails };
+/**
+ * Получает список всех курсов и всех групп для роли Администратора.
+ * Возвращает данные в формате, ожидаемом клиентской частью.
+ */
+async function getAllCoursesAndGroupsForAdmin() {
+    try {
+        const query = `
+            SELECT 
+                id, 
+                name, 
+                group_name 
+            FROM 
+                courses
+            ORDER BY 
+                name, group_name;
+        `;
+        const [rows] = await pool.query(query);
+
+        const coursesMap = {};
+
+        // Группировка курсов и сбор уникальных групп
+        rows.forEach(row => {
+            if (!coursesMap[row.id]) {
+                coursesMap[row.id] = {
+                    course_id: row.id,
+                    course_name: row.name,
+                    groups: new Set() // Используем Set для уникальности
+                };
+            }
+            if (row.group_name) {
+                 coursesMap[row.id].groups.add(row.group_name);
+            }
+        });
+
+        // Преобразование Set в Array и формирование финальной структуры
+        const result = Object.values(coursesMap).map(course => ({
+            course_id: course.course_id,
+            course_name: course.course_name,
+            groups: Array.from(course.groups)
+        }));
+
+        return { success: true, data: result };
+
+    } catch (error) {
+        console.error("DB Error in getAllCoursesAndGroupsForAdmin:", error);
+        return { success: false, error: "Ошибка сервера при получении всех курсов." };
+    }
+}
+
+
+async function getAcademicEvents() {
+    try {
+        const query = `
+            SELECT 
+                id, 
+                title, 
+                start_date AS start, 
+                end_date AS end, 
+                color,
+                description 
+            FROM 
+                academic_events
+            ORDER BY
+                start_date;
+        `;
+        
+        // ВАЖНО: Мы переименовываем поля в 'start' и 'end',
+        // чтобы они сразу соответствовали формату, который ждет FullCalendar!
+        
+        const [events] = await pool.query(query);
+        
+        // Если end_date установлен в базе как NULL, FullCalendar может быть недоволен.
+        // Очистим его здесь, если он не установлен.
+        const formattedEvents = events.map(event => ({
+            id: event.id,
+            title: event.title,
+            start: event.start,
+            // Если end_date существует, мы его возвращаем, иначе null
+            end: event.end ? event.end : null,
+            color: event.color,
+            description: event.description 
+        }));
+        
+        return { success: true, data: formattedEvents };
+
+    } catch (error) {
+        console.error("DB Error in getAcademicEvents:", error);
+        return { success: false, error: "Ошибка БД при загрузке событий календаря." };
+    }
+}
+
+async function saveAcademicEvent(eventData) {
+    const { id, title, start, end, color, description } = eventData;
+    
+    try {
+        if (id) {
+            // Режим обновления существующего события
+            const query = `
+                UPDATE academic_events
+                SET title = ?, start_date = ?, end_date = ?, color = ?, description = ?
+                WHERE id = ?;
+            `;
+            await pool.query(query, [title, start, end || null, color, description, id]);
+            return { success: true, message: "Событие успешно обновлено." };
+
+        } else {
+            // Режим создания нового события
+            const query = `
+                INSERT INTO academic_events (title, start_date, end_date, color, description)
+                VALUES (?, ?, ?, ?, ?);
+            `;
+            const [result] = await pool.query(query, [title, start, end || null, color, description]);
+            
+            return { success: true, message: "Событие успешно создано.", newId: result.insertId };
+        }
+    } catch (error) {
+        console.error("DB Error in saveAcademicEvent:", error);
+        return { success: false, error: "Ошибка БД при сохранении события." };
+    }
+}
+
+async function deleteAcademicEvent(id) {
+    try {
+        await pool.query("DELETE FROM academic_events WHERE id = ?", [id]);
+        return { success: true, message: "Событие удалено." };
+    } catch (error) {
+        console.error("DB Error in deleteAcademicEvent:", error);
+        return { success: false, error: "Ошибка БД при удалении события." };
+    }
+}
+

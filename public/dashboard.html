@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Главная страница | Портал</title>
+    
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css' rel='stylesheet' />
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/ru.js'></script>
+
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f9; display: flex; }
         
@@ -266,7 +275,90 @@
 .grade-d { background-color: #d35400; }
 .grade-f { background-color: #c0392b; }
 
+.widget-grid {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Стиль для каждой карточки-виджета */
+.widget-card {
+    flex: 1; /* Равное распределение места между тремя виджетами */
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #8b0000; /* Акцентный цвет AkademHUB */
+}
+
+.widget-card h3 {
+    margin-top: 0;
+    color: #8b0000;
+    font-size: 1.2em;
+}
+
+.widget-card p {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #34495e;
+}
+
+/* Стиль для контейнера календаря */
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 колонки */
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.news-card {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    text-decoration: none; 
+    color: #333;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+}
+
+.news-image {
+    width: 100%;
+    height: 150px; /* Фиксированная высота для всех изображений */
+    object-fit: cover; /* Обеспечивает покрытие области без искажения */
+}
+
+.news-content {
+    padding: 15px;
+}
+
+.news-content h3 {
+    margin-top: 0;
+    font-size: 1.1em;
+    color: #8b0000; /* Корпоративный цвет для заголовков */
+    height: 3.3em; /* Фиксированная высота для 2-3 строк */
+    overflow: hidden;
+}
+
+.news-content p {
+    font-size: 0.9em;
+    color: #555;
+    margin: 5px 0 0 0;
+}
     </style>
+
 </head>
 <body>
     <div class="sidebar">
@@ -275,18 +367,18 @@
             <p id="menuUsername">username</p>
             <p id="menuRole">role</p>
         </div>
-        
-        <a href="#" class="menu-item" id="profileLink">Profile</a>
-        <a href="#" class="menu-item" id="courseLink">Courses</a>
-        <a href="#" class="menu-item" id="scheduleLink">Schedule</a>
-        <a href="#" class="menu-item" id="resultsLink">Results</a>
-        <a href="#" class="menu-item" id="logoutLink">Logout</a>
+        <a href="#" class="menu-item active-menu" id="homeLink">Главная</a>
+        <a href="#" class="menu-item" id="profileLink">Профиль</a>
+        <a href="#" class="menu-item" id="courseLink">Курсы</a>
+        <a href="#" class="menu-item" id="scheduleLink">Расписание</a>
+        <a href="#" class="menu-item" id="resultsLink">Результаты</a>
+        <a href="#" class="menu-item" id="logoutLink">Выйти</a>
     </div>
 
     <div class="main-content">
-        <h1>Добро пожаловать на портал!</h1>
-        <p>Ваш контент будет загружен здесь.</p>
-        <div id="contentArea"></div>
+        <div id="contentArea">
+
+        </div>
     </div>
     <div id="messageModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -321,7 +413,9 @@ async function loadProfile() {
         document.getElementById('menuUsername').textContent = userData.username;
         document.getElementById('menuRole').textContent = userData.role;
         userRole = userData.role;
-        document.getElementById('contentArea').textContent = `Ваша роль: ${userData.role}`;
+        window.userData = userData;
+
+        renderHomePage(userData);
 
     } catch (error) {
         console.error("Ошибка загрузки профиля:", error);
@@ -331,6 +425,7 @@ async function loadProfile() {
 
  document.getElementById('logoutLink').addEventListener('click', async (e) => {
             e.preventDefault();
+            setActiveMenu(e.currentTarget);
             
             await fetch('/logout', { method: 'POST' });
             
@@ -510,7 +605,7 @@ async function loadAdminCourses() {
 function attachContentHandlers(role) {
        if (document.getElementById('groupSelector') || document.getElementById('scheduleTableBody')) {
         
-        if (role === 'teacher') {
+        if (role === 'teacher' || role === 'admin') {
             const saveBtn = document.getElementById('saveScheduleBtn');
             if (saveBtn) {
                 saveBtn.addEventListener('click', saveSchedule);
@@ -682,7 +777,11 @@ async function loadContent(path) {
     
     // 1. Определение статического файла на основе роли и пути
     if (path === '/schedule') {
-        targetFile = userRole === 'teacher' ? 'teacher_schedule.html' : 'student_schedule.html';
+        if (userRole === 'teacher' || userRole === 'admin') {
+        targetFile = 'teacher_schedule.html';
+        } else {
+            targetFile = 'student_schedule.html';
+        }
     } else if (path === '/profile') {
         if(userRole === 'admin' ){
             targetFile = 'admin_profile.html';}
@@ -759,19 +858,28 @@ async function loadProfileData() {
     }
 }
 
+document.getElementById('homeLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    renderHomePage(window.userData); // Используем сохраненные данные пользователя
+    setActiveMenu(e.currentTarget);
+});
+
 document.getElementById('scheduleLink').addEventListener('click', (e) => {
     e.preventDefault();
     loadContent('/schedule');
+    setActiveMenu(e.currentTarget);
 });
 
 document.getElementById('courseLink').addEventListener('click', (e) => {
     e.preventDefault();
     loadContent('/courses');
+    setActiveMenu(e.currentTarget);
 });
 
 document.getElementById('profileLink').addEventListener('click', (e) => {
     e.preventDefault();
     loadContent('/profile');
+    setActiveMenu(e.currentTarget);
 });
 
 async function loadStudentSchedule() {
@@ -1968,9 +2076,6 @@ function renderTeacherGradingTable(assessments, data, tableId = '') {
 }
 
 
-/**
- * Собирает данные из всех полей ввода и отправляет на сервер.
- */
 async function saveGrades(e) {
     e.preventDefault();
     const saveBtn = document.getElementById('saveGradesBtn');
@@ -2198,6 +2303,350 @@ function renderSummaryTab(summary) {
         </p>
     `;
 }
+
+/**
+ * Рендерит главную/приветственную страницу портала.
+ * @param {Object} userData - Объект с данными авторизованного пользователя.
+ */
+function renderHomePage(userData) {
+    const container = document.getElementById('contentArea');
+    
+    // Используем полные данные пользователя, если они есть
+    const userName = userData.full_name || userData.username || 'Пользователь';
+    const roleRu = {
+        'student': 'Студент',
+        'teacher': 'Преподаватель',
+        'admin': 'Администратор'
+    }[userData.role] || userData.role;
+
+    container.innerHTML = `
+        <h2 class="page-header" style="color: #34495e;">Добро пожаловать, ${userName}!</h2>
+        <p style="margin-bottom: 30px; color: #7f8c8d;">Ваша роль: **${roleRu}**. Ознакомьтесь с последними новостями и календарем.</p>
+
+        <div class="news-grid">
+            
+            <a href="#" class="news-card">
+                <img src="/uploads/erasmus2026.png" alt="Новость 1" class="news-image">
+                <div class="news-content">
+                    <h3>Объявлен старт программы академической мобильности "Erasmus+" на 2026 год</h3>
+                    <p>30 Ноября 2025</p>
+                </div>
+            </a>
+
+            <a href="#" class="news-card">
+                <img src="/uploads/zasedanie1.jpg" alt="Новость 2" class="news-image">
+                <div class="news-content">
+                    <h3>Заседание Ученого Совета: утверждение новых образовательных программ</h3>
+                    <p>25 Ноября 2025</p>
+                </div>
+            </a>
+
+            <a href="#" class="news-card">
+                <img src="/uploads/AI-Hackathon-2.png" alt="Новость 3" class="news-image">
+                <div class="news-content">
+                    <h3>Студенческий хакатон по искусственному интеллекту собрал рекордное количество команд</h3>
+                    <p>20 Ноября 2025</p>
+                </div>
+            </a>
+            
+        </div>
+        <h2 class="page-header" style="color: #34495e; margin-top: 40px;">Академический Календарь</h2>
+        <div id="calendar"></div>
+    `;
+    
+    // ❗ ВЫЗОВ loadHomePageWidgets(userData); УДАЛЕН, так как виджеты удалены
+    
+    // Запускаем загрузку данных для календаря (это осталось)
+    loadAcademicCalendar(); 
+    
+    setActiveMenu(document.getElementById('homeLink'));
+}
+
+/**
+ * Управляет активным пунктом меню.
+ * @param {HTMLElement} activeElement - Элемент меню, который нужно сделать активным.
+ */
+function setActiveMenu(activeElement) {
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active-menu');
+    });
+    if (activeElement) {
+        activeElement.classList.add('active-menu');
+    }
+}
+
+async function loadAcademicCalendar() {
+    // 1. Запрос данных с сервера
+    const eventsRes = await fetch('/api/calendar/events');
+    const result = await eventsRes.json();
+    
+    if (!result.success) {
+        console.error("Failed to load academic events:", result.error);
+        return;
+    }
+    
+    const calendarEl = document.getElementById('calendar');
+    
+    // ⭐ Проверка роли для включения редактирования
+    const isAdmin = window.userData && window.userData.role === 'admin';
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', 
+        locale: 'ru',               
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: isAdmin ? 'dayGridMonth,dayGridWeek,dayGridDay addButton' : 'dayGridMonth,dayGridWeek,dayGridDay' // Добавим кнопку "Добавить"
+        },
+        
+        // ⭐ НАСТРОЙКИ РЕДАКТИРОВАНИЯ (только для Админа)
+        editable: isAdmin,     // Возможность перетаскивать и изменять размер
+        selectable: isAdmin,   // Возможность выделять диапазон дат
+        
+        // Источник данных
+        events: result.data, 
+        eventDisplay: 'block', 
+        eventColor: '#8b0000', 
+        
+        // -----------------------------------------------------------
+        // ⭐ ОБРАБОТЧИКИ СОБЫТИЙ (ТОЛЬКО ДЛЯ АДМИНА)
+        // -----------------------------------------------------------
+        
+        // 1. Изменение событий (перетаскивание/изменение размера)
+        eventDrop: async function(info) {
+            // Запрашиваем подтверждение перед сохранением
+            if (!confirm(`Вы уверены, что хотите переместить событие "${info.event.title}"?`)) {
+                info.revert(); // Отменяем действие, если пользователь отказался
+                return;
+            }
+            // Вызываем нашу функцию сохранения
+            const success = await saveCalendarEvent(info.event, 'update');
+            if (!success) { info.revert(); } // Если ошибка, откатываем изменение
+        },
+
+        eventResize: async function(info) {
+             if (!confirm(`Вы уверены, что хотите изменить продолжительность события "${info.event.title}"?`)) {
+                info.revert();
+                return;
+            }
+            const success = await saveCalendarEvent(info.event, 'update');
+            if (!success) { info.revert(); }
+        },
+        
+        // 2. Создание нового события (выделение диапазона)
+        select: async function(info) {
+            const title = prompt('Введите название нового события:');
+            if (title) {
+                const newEvent = {
+                    title: title,
+                    start: info.start,
+                    end: info.end,
+                    backgroundColor: '#2ecc71', // Зеленый для новых
+                    id: null,
+                    extendedProps: { description: '' }
+                };
+                
+                // Сохраняем событие и получаем новый ID
+                const newId = await saveCalendarEvent(newEvent, 'create');
+                
+                if (newId) {
+                    newEvent.id = newId;
+                    calendar.addEvent(newEvent); // Добавляем событие в календарь только после успешного сохранения
+                }
+            }
+            calendar.unselect(); // Сброс выделения
+        },
+        
+        // 3. Редактирование существующего события по клику
+        eventClick: function(info) {
+            if (!isAdmin) return;
+            handleEventClick(info.event, calendar);
+        }
+    });
+
+    // 3. Рендеринг календаря
+    calendar.render();
+    
+    // 4. Обновление виджетов
+    updateNextEventWidget(result.data);
+}
+
+// function loadHomePageWidgets(userData) {
+//     // TODO: Здесь вы будете загружать реальные данные для курсов и сообщений
+//     
+//     // Заглушка: Мои курсы (Просто для демонстрации макета)
+//     document.getElementById('courseCount').textContent = '4'; // Используйте API, когда будет готова функция
+// 
+//     // Заглушка: Непрочитанные сообщения
+//     document.getElementById('unreadMessagesCount').textContent = '2'; // Используйте API, когда будет готова функция
+// }
+
+function updateNextEventWidget(events) {
+    if (!events || events.length === 0) {
+        document.getElementById('nextEventTitle').textContent = 'Нет запланированных событий';
+        document.getElementById('nextEventDate').textContent = '';
+        return;
+    }
+    
+    const today = new Date().toISOString().slice(0, 10);
+    
+    // Находим ближайшее будущее событие
+    const nextEvent = events.find(event => event.start >= today);
+
+    if (nextEvent) {
+        const startDate = new Date(nextEvent.start).toLocaleDateString('ru-RU', { 
+            day: 'numeric', month: 'long', year: 'numeric' 
+        });
+        document.getElementById('nextEventTitle').textContent = nextEvent.title;
+        document.getElementById('nextEventDate').textContent = `Дата: ${startDate}`;
+    } else {
+        document.getElementById('nextEventTitle').textContent = 'Все события в прошлом';
+        document.getElementById('nextEventDate').textContent = '';
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toastNotification');
+    toast.textContent = message;
+    
+    // Сброс всех классов и стилей
+    toast.style.backgroundColor = '';
+    
+    // Установка цвета в зависимости от типа
+    if (type === 'success') {
+        toast.style.backgroundColor = '#2ecc71'; // Зеленый
+    } else if (type === 'error') {
+        toast.style.backgroundColor = '#e74c3c'; // Красный
+    } else if (type === 'info') {
+        toast.style.backgroundColor = '#3498db'; // Синий
+    } else {
+        toast.style.backgroundColor = '#333'; // Серый по умолчанию
+    }
+
+    // Показать уведомление
+    toast.style.opacity = 1;
+    toast.style.visibility = 'visible';
+    
+    // Скрыть уведомление через 3 секунды
+    setTimeout(function(){ 
+        toast.style.opacity = 0;
+        toast.style.visibility = 'hidden';
+    }, 3000);
+}
+
+
+// Новая функция для отправки изменений на сервер
+async function saveCalendarEvent(eventData, type) {
+    // Форматирование данных для отправки на сервер
+    const dataToSend = {
+        id: eventData.id || null, // ID будет null для нового события
+        title: eventData.title,
+        start: eventData.start.toISOString().slice(0, 10), // Дата начала
+        end: eventData.end ? eventData.end.toISOString().slice(0, 10) : null, // Дата окончания
+        color: eventData.backgroundColor || '#8b0000',
+        description: eventData.extendedProps.description || ''
+    };
+    
+    // Всплывающее уведомление, что идет сохранение
+    showToast(`Сохранение события: ${dataToSend.title}...`, 'info'); 
+
+    try {
+        const response = await fetch('/api/admin/calendar/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(`Событие успешно ${dataToSend.id ? 'обновлено' : 'создано'}.`, 'success');
+            
+            // Если событие новое, присваиваем ему ID, полученный от сервера
+            if (type === 'create' && result.newId) {
+                return result.newId;
+            }
+            return true;
+        } else {
+            showToast(`Ошибка сохранения: ${result.error}`, 'error');
+            return false;
+        }
+    } catch (error) {
+        showToast('Ошибка сети при сохранении события.', 'error');
+        console.error("Calendar save error:", error);
+        return false;
+    }
+}
+    
+//  Функция обработки клика по событию
+function handleEventClick(event, calendar) {
+    const action = prompt(`Событие: "${event.title}". Выберите действие:\n1. Редактировать (R)\n2. Удалить (D)\n3. Отмена (Cancel)`, 'R');
+    
+    if (action === null) return; // Отмена
+
+    if (action.toUpperCase() === 'R') {
+        // Редактирование
+        const newTitle = prompt('Новое название:', event.title);
+        const newColor = prompt('Новый цвет (HEX, например, #3498db):', event.backgroundColor);
+        
+        if (newTitle !== null && newTitle !== event.title || newColor !== null && newColor !== event.backgroundColor) {
+            event.setProp('title', newTitle);
+            event.setProp('backgroundColor', newColor);
+            
+            // Сохраняем обновленное событие
+            saveCalendarEvent(event, 'update');
+        }
+        
+    } else if (action.toUpperCase() === 'D') {
+        // Удаление
+        if (confirm(`Вы уверены, что хотите удалить событие "${event.title}"?`)) {
+            deleteCalendarEvent(event.id, calendar, event); // Вызываем новую функцию удаления
+        }
+    }
+}
+
+// Новая функция для удаления
+async function deleteCalendarEvent(eventId, calendar, event) {
+    showToast(`Удаление события ID ${eventId}...`, 'info'); 
+    
+    try {
+        const response = await fetch('/api/admin/calendar/delete', { // Нужен новый маршрут!
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: eventId })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            event.remove(); // Удаляем событие с календаря
+            showToast('Событие успешно удалено.', 'success');
+        } else {
+            showToast(`Ошибка удаления: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        showToast('Ошибка сети при удалении события.', 'error');
+        console.error("Calendar delete error:", error);
+    }
+}
+
+
     </script>
+    <div id="toastNotification" style="
+    visibility: hidden; 
+    min-width: 250px; 
+    background-color: #333; 
+    color: #fff; 
+    text-align: center; 
+    border-radius: 2px; 
+    padding: 16px; 
+    position: fixed; 
+    z-index: 9999; 
+    left: 50%; 
+    bottom: 30px; 
+    transform: translateX(-50%); 
+    font-size: 17px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: visibility 0.3s, opacity 0.3s;
+    opacity: 0;
+"></div>
 </body>
 </html>
