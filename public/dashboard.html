@@ -25,15 +25,26 @@
             position: fixed;
         }
         .user-info {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            width: 100%; 
+            padding: 15px 0;
         }
         .user-icon {
-            font-size: 50px;
-            margin-bottom: 5px;
-            line-height: 1;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center; 
+            background-repeat: no-repeat; 
+            margin-bottom: 5px; 
+            background-image: url('/assets/default_avatar.jpg'); 
+
+            display: flex; 
+            justify-content: center;
+            align-items: center;
         }
         .user-info p {
             margin: 0;
@@ -60,8 +71,6 @@
             color: #333;
         }
 
-        /* --- Стили для раздела РЕЗУЛЬТАТЫ --- */
-/* --- Стили для раздела РЕЗУЛЬТАТЫ --- */
 .results-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -105,7 +114,7 @@
 .card-grade {
     font-size: 4em;
     font-weight: 900;
-    color: #e74c3c; /* Красный по умолчанию */
+    color: #e74c3c;
     flex-grow: 1; 
     display: flex;
     align-items: center;
@@ -120,9 +129,8 @@
     margin-top: 10px;
 }
 
-/* Сообщения о состоянии */
+
 .loading-message, .no-results-message {
-    /* Важно для растягивания на всю ширину в Grid-контейнере */
     width: 100%; 
     text-align: center;
     padding: 20px;
@@ -134,7 +142,7 @@
 }
 .action-btn {
     padding: 10px 20px;
-    background-color: #3498db; /* Синяя кнопка */
+    background-color: #3498db;
     color: white;
     border: none;
     border-radius: 4px;
@@ -167,7 +175,7 @@
 .tab-button.active {
     background-color: #fff;
     border-color: #ddd;
-    border-bottom: 2px solid #fff; /* Перекрываем нижнюю границу контейнера */
+    border-bottom: 2px solid #fff;
 }
 
 .grading-table {
@@ -180,7 +188,7 @@
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
-    white-space: nowrap; /* Важно для длинных заголовков */
+    white-space: nowrap;
 }
 
 .grading-table thead th {
@@ -189,15 +197,13 @@
 }
 
 .table-scroll {
-    overflow-x: auto; /* Позволяет прокручивать горизонтально, если столбцов много */
+    overflow-x: auto;
 }
 
 .grade-input {
     padding: 3px;
     text-align: center;
 }
-
-/* CSS для вкладок */
 .tabs-nav {
     display: flex;
     margin-bottom: 20px;
@@ -224,8 +230,6 @@
 .tab-pane.active {
     display: block;
 }
-
-/* Стили для таблицы */
 .assessment-table {
     width: 100%;
     border-collapse: collapse;
@@ -244,8 +248,6 @@
 .score-value.not-set {
     color: #999;
 }
-
-/* Стили для сводки */
 .summary-box {
     border: 1px solid #8b0000;
     padding: 20px;
@@ -268,7 +270,7 @@
     border-radius: 4px;
     color: white;
 }
-/* Пример цветов для оценки */
+
 .grade-a { background-color: #27ae60; }
 .grade-b { background-color: #2980b9; }
 .grade-c { background-color: #f39c12; }
@@ -281,14 +283,14 @@
     margin-bottom: 30px;
 }
 
-/* Стиль для каждой карточки-виджета */
+
 .widget-card {
-    flex: 1; /* Равное распределение места между тремя виджетами */
+    flex: 1;
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-left: 5px solid #8b0000; /* Акцентный цвет AkademHUB */
+    border-left: 5px solid #8b0000;
 }
 
 .widget-card h3 {
@@ -303,7 +305,6 @@
     color: #34495e;
 }
 
-/* Стиль для контейнера календаря */
 #calendar {
     max-width: 100%;
     margin: 0 auto;
@@ -315,7 +316,7 @@
 
 .news-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 колонки */
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -336,8 +337,8 @@
 
 .news-image {
     width: 100%;
-    height: 150px; /* Фиксированная высота для всех изображений */
-    object-fit: cover; /* Обеспечивает покрытие области без искажения */
+    height: 150px;
+    object-fit: cover;
 }
 
 .news-content {
@@ -347,8 +348,8 @@
 .news-content h3 {
     margin-top: 0;
     font-size: 1.1em;
-    color: #8b0000; /* Корпоративный цвет для заголовков */
-    height: 3.3em; /* Фиксированная высота для 2-3 строк */
+    color: #8b0000;
+    height: 3.3em;
     overflow: hidden;
 }
 
@@ -361,9 +362,9 @@
 
 </head>
 <body>
-    <div class="sidebar">
+    <div class="sidebar"> 
         <div class="user-info">
-            <div class="user-icon">👤</div>
+            <div id="mainMenuAvatar" class="user-icon"></div>
             <p id="menuUsername">username</p>
             <p id="menuRole">role</p>
         </div>
@@ -380,6 +381,7 @@
 
         </div>
     </div>
+
     <div id="messageModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <span class="close-btn">&times;</span>
@@ -393,7 +395,9 @@
                         <button id="deleteMessageBtn" class="action-btn delete-btn" style="background-color: #e74c3c;">Удалить</button>
                     </div>
                 </div>
-            </div>
+    </div>
+    
+    
     <script>
 
 let USER_ROLE= 'student';
@@ -403,7 +407,6 @@ async function loadProfile() {
         const profileRes = await fetch("/profile");
         
         if (profileRes.status === 401) {
-            // Если сервер вернул 401, перенаправляем
             window.location.href = '/'; 
             return;
         }
@@ -434,8 +437,6 @@ async function loadProfile() {
 
         loadProfile();
 async function saveSchedule() {
-    // Вся логика, которую мы писали, остаётся здесь. 
-    // Она берет элементы из DOM, которые были загружены в contentArea.
     const groupName = document.getElementById('groupSelector').value;
     const dayOfWeek = document.getElementById('daySelector').value;
     const msgBox = document.getElementById('scheduleMessage');
@@ -463,7 +464,6 @@ async function saveSchedule() {
     }
 
     try {
-        // ... (логика fetch, как раньше)
         msgBox.textContent = '⏳ Сохранение...';
         msgBox.style.color = 'orange';
 
@@ -484,7 +484,6 @@ async function saveSchedule() {
         }
 
     } catch (error) {
-        // ...
         console.error("Save schedule error:", error);
         msgBox.textContent = '❌ Ошибка сети при сохранении.';
         msgBox.style.color = 'red';
@@ -511,21 +510,16 @@ async function loadTeacherSchedule() {
     msgBox.style.color = 'orange';
 
     try {
-        // Отправляем GET-запрос с выбранными параметрами
-        // Мы используем /api/get_schedule?group=X, как вы настроили в server.js
         const res = await fetch(`/api/get_schedule?group=${group}&day=${day}`);
         const data = await res.json();
         
         if (data.success && data.schedule && data.schedule.length > 0) {
             
-            // Заполняем форму данными (schedule - это массив уроков)
             data.schedule.forEach(lesson => {
                 const row = tableBody.querySelector(`tr[data-time="${lesson.time_slot}"]`);
                 if (row) {
-                    // Заполняем предмет и аудиторию
                     row.querySelector('input[data-field="course"]').value = lesson.course;
                     row.querySelector('input[data-field="classroom"]').value = lesson.classroom;
-                    // Преподавателя заполнять не нужно, т.к. его ID берется из сессии при сохранении
                 }
             });
             
@@ -544,7 +538,6 @@ async function loadTeacherSchedule() {
     }
 }
 
-// Загрузка всех курсов для Администратора
 async function loadAdminCourses() {
     const tableBody = document.getElementById('coursesTableBody');
     const msgBox = document.getElementById('coursesMessage');
@@ -580,7 +573,6 @@ async function loadAdminCourses() {
             row.insertCell().textContent = course.teacher_id;
             row.insertCell().textContent = course.credits;
             
-            // Кнопки действий
             const actionsCell = row.insertCell();
             
             const editBtn = document.createElement('button');
@@ -601,7 +593,6 @@ async function loadAdminCourses() {
     }
 }
 
-// Функция для привязки JS-обработчиков к элементам, которые только что загружены
 function attachContentHandlers(role) {
        if (document.getElementById('groupSelector') || document.getElementById('scheduleTableBody')) {
         
@@ -662,7 +653,6 @@ function attachContentHandlers(role) {
     }
 }
 
-// Вспомогательная функция для сброса формы
 function resetCourseForm() {
     document.getElementById('courseId').value = '';
     document.getElementById('courseName').value = '';
@@ -676,7 +666,6 @@ function resetCourseForm() {
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-// Вспомогательная функция для заполнения формы данными курса
 function editCourse(course) {
     document.getElementById('courseId').value = course.id;
     document.getElementById('courseName').value = course.name;
@@ -691,7 +680,6 @@ function editCourse(course) {
     document.getElementById('formMessage').textContent = 'Редактирование курса: ' + course.name;
 }
 
-// Отправка данных курса на сервер (добавление/обновление)
 async function saveCourse() {
     const teacherIdElement = document.getElementById('courseTeacherId');
     const msgBox = document.getElementById('formMessage');
@@ -713,7 +701,6 @@ async function saveCourse() {
     const description = document.getElementById('courseDescription').value.trim();
     const credits = parseInt(document.getElementById('courseCredits').value.trim());
     const teacher_id = parseInt(teacherIdElement.value.trim());
-    //const msgBox = document.getElementById('formMessage');
 
     if (!name || isNaN(credits) || isNaN(teacher_id) || !group_name || isNaN(semester)) {
         msgBox.textContent = '❌ Заполните все поля корректно.';
@@ -761,7 +748,7 @@ async function deleteCourse(id) {
         
         if (data.success) {
             msgBox.textContent = `✅ Курс ID ${id} успешно удален.`;
-            loadAdminCourses(); // Перезагружаем список
+            loadAdminCourses();
         } else {
             msgBox.textContent = '❌ Ошибка удаления: ' + (data.error || 'Неизвестная ошибка.');
         }
@@ -775,7 +762,6 @@ async function deleteCourse(id) {
 async function loadContent(path) {
      let targetFile = '';
     
-    // 1. Определение статического файла на основе роли и пути
     if (path === '/schedule') {
         if (userRole === 'teacher' || userRole === 'admin') {
         targetFile = 'teacher_schedule.html';
@@ -786,8 +772,7 @@ async function loadContent(path) {
         if(userRole === 'admin' ){
             targetFile = 'admin_profile.html';}
         else{
-         // Загружаем профиль студента или преподавателя
-        targetFile = userRole === 'teacher' ? 'teacher_profile.html' : 'student_profile.html'; // Создайте teacher_profile позже
+        targetFile = userRole === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
         }
     }
     
@@ -803,16 +788,18 @@ async function loadContent(path) {
         return;
     }
 
-    // 2. Выполнение fetch запроса к статическому файлу
     try {
-        const res = await fetch(targetFile); // Запрашиваем файл напрямую
+        const res = await fetch(targetFile);
         if (!res.ok) throw new Error(`Failed to load ${targetFile} (${res.status})`);
         
         const html = await res.text();
         
-        // 3. Вставка и запуск обработчиков
         document.getElementById('contentArea').innerHTML = html; 
         attachContentHandlers(userRole);
+
+        if (path === '/profile') {
+            await loadProfileAndSetAvatar(); 
+        }
         
     } catch (error) {
         console.error('Error loading content:', error);
@@ -827,22 +814,19 @@ async function loadProfileData() {
     if (contentHeader) contentHeader.textContent = 'ЛИЧНЫЕ ДАННЫЕ (Загрузка...)';
 
     try {
-        const res = await fetch("/api/get_profile_data"); // НОВЫЙ API
+        const res = await fetch("/api/get_profile_data");
         const data = await res.json();
         
         if (data.success && data.user) {
             const user = data.user;
             
-            // 1. Отображение данных в боковой панели
             document.getElementById('profileUsername').textContent = user.username || 'N/A';
             
-            // 2. Отображение данных в секции "Личные данные"
             document.getElementById('displayUsername').textContent = user.username || '—';
-            document.getElementById('displayName').textContent = user.full_name || 'Не указано'; // Предполагаем поле full_name
+            document.getElementById('displayName').textContent = user.full_name || 'Не указано';
             document.getElementById('displayId').textContent = user.id || '—';
             document.getElementById('displayGroup').textContent = user.group_name || '—';
             
-            // Эти поля нужно добавить в БД, но пока можно оставить заглушки
             document.getElementById('displayMajor').textContent = user.major || 'Не задано'; 
             document.getElementById('displayEntranceYear').textContent = user.entrance_year || 'Не задан';
 
@@ -860,7 +844,7 @@ async function loadProfileData() {
 
 document.getElementById('homeLink').addEventListener('click', (e) => {
     e.preventDefault();
-    renderHomePage(window.userData); // Используем сохраненные данные пользователя
+    renderHomePage(window.userData);
     setActiveMenu(e.currentTarget);
 });
 
@@ -886,14 +870,13 @@ async function loadStudentSchedule() {
             const msgBox = document.getElementById('scheduleMessage');
             const tableBody = document.getElementById('scheduleTableBody');
             
-            tableBody.innerHTML = ''; // Очищаем таблицу
+            tableBody.innerHTML = '';
 
             console.log("--- 1. функция loadstudentSchedule запущена ---");
 
             try {
 
                 console.log("--- 2. Отправка fetch запроса... ---");
-                // Запрос на сервер. Сервер сам определит группу студента.
                 const res = await fetch("/api/get_schedule");
 
                 console.log("--- 3. Fetch вернул ответ! ---");
@@ -909,7 +892,7 @@ async function loadStudentSchedule() {
                     let currentDay = '';
                     
                     data.schedule.forEach(lesson => {
-                        // Добавляем заголовок дня недели
+     
                         if (lesson.day_of_week !== currentDay) {
                             currentDay = lesson.day_of_week;
                             const dayRow = document.createElement('tr');
@@ -917,7 +900,6 @@ async function loadStudentSchedule() {
                             tableBody.appendChild(dayRow);
                         }
                         
-                        // Добавляем строку урока
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${lesson.time_slot}</td>
@@ -946,7 +928,6 @@ async function loadCourses() {
     
     const role = userRole;
 
-    // Очищаем и показываем загрузку
     if (tableBody) tableBody.innerHTML = ''; 
     if (msgBox) msgBox.textContent = 'Загрузка данных...';
 
@@ -955,7 +936,7 @@ async function loadCourses() {
 
         if(role === 'student') {
             const semesterSelector = document.getElementById('semesterSelector');
-            const selectedSemester = semesterSelector ? semesterSelector.value : '1'; // По умолчанию 1
+            const selectedSemester = semesterSelector ? semesterSelector.value : '1';
             
             apiUrl = `/api/get_courses?semester=${selectedSemester}`; 
         }
@@ -968,9 +949,8 @@ async function loadCourses() {
         }
         
 
-        if (msgBox) msgBox.textContent = ''; //Очистка
+        if (msgBox) msgBox.textContent = '';
 
-        // Отрисовка курсов для СТУДЕНТА
        if (data.role === 'student') {
                 const tableBody = document.getElementById('coursesTableBody');
                 if (tableBody) tableBody.innerHTML = '';
@@ -1007,20 +987,16 @@ function attachProfileNavigation() {
             const targetSectionId = button.getAttribute('data-section');
             const targetHeader = button.textContent;
 
-            // Сброс активного состояния кнопок
             navButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            // Переключение секций
             sections.forEach(section => {
                 section.style.display = 'none';
             });
             document.getElementById(targetSectionId + '-section').style.display = 'block';
             
-            // Обновление заголовка
             if (contentHeader) contentHeader.textContent = targetHeader.toUpperCase();
             
-            // Специальная обработка для "Личные данные"
             if (targetSectionId === 'personal-data') {
                 loadProfileData(); 
             }
@@ -1029,7 +1005,7 @@ function attachProfileNavigation() {
 }
 
 async function changePassword(e) {
-    e.preventDefault(); // Предотвращаем стандартную отправку формы
+    e.preventDefault();
 
     const currentPass = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value;
@@ -1074,7 +1050,6 @@ async function changePassword(e) {
         if (data.success) {
             msgBox.textContent = '✅ Пароль успешно изменен!';
             msgBox.style.color = 'green';
-            // Очищаем форму после успеха
             document.getElementById('changePasswordForm').reset();
         } else {
             msgBox.textContent = '❌ Ошибка: ' + (data.error || 'Неизвестная ошибка сервера.');
@@ -1112,7 +1087,6 @@ async function uploadAvatar(e) {
     }
 
     const file = fileInput.files[0];
-    // Проверка размера файла (например, не более 5 МБ)
     if (file.size > 5 * 1024 * 1024) {
         msgBox.textContent = '❌ Файл слишком большой (макс. 5 МБ).';
         msgBox.style.color = 'red';
@@ -1122,14 +1096,12 @@ async function uploadAvatar(e) {
     msgBox.textContent = '⏳ Загрузка файла...';
     msgBox.style.color = 'orange';
 
-    // FormData используется для отправки двоичных данных (файлов)
     const formData = new FormData();
     formData.append('avatar', file);
 
     try {
         const res = await fetch("/api/upload_avatar", {
             method: "POST",
-            // Важно: 'Content-Type' не устанавливается! fetch сделает это автоматически с boundary для FormData.
             body: formData 
         });
 
@@ -1139,22 +1111,21 @@ async function uploadAvatar(e) {
             msgBox.textContent = '✅ Аватар успешно обновлен!';
             msgBox.style.color = 'green';
             
-            // ❗ Обновляем отображение фото
             const currentAvatar = document.getElementById('currentAvatar');
-           // Создаем URL с кэш-бастером
+
              const newAvatarUrl = data.filePath + '?t=' + new Date().getTime();
              document.getElementById('currentAvatar').src = newAvatarUrl;
 
-             // ❗ НОВОЕ: Обновляем аватар в левом сайдбаре
-             // Предполагаем, что у изображения в сайдбаре есть ID 'sidebarAvatar'
             const sidebarAvatar = document.getElementById('sidebarAvatar'); 
             if (sidebarAvatar) {
-                // Устанавливаем background-image, используя URL с кэш-бастером
                 sidebarAvatar.style.backgroundImage = `url('${newAvatarUrl}')`; 
             }
+
+            const mainMenuAvatar = document.getElementById('mainMenuAvatar');
+            if (mainMenuAvatar) {
+                mainMenuAvatar.style.backgroundImage = `url('${newAvatarUrl}')`;
+            }
             
-            
-            // Очищаем форму
             document.getElementById('changePhotoForm').reset();
             document.getElementById('fileNameDisplay').textContent = 'Файл не выбран';
 
@@ -1178,24 +1149,25 @@ async function loadProfileAndSetAvatar() {
         if (data.success) {
             const user = data.user;
             window.userRole = user.role;
-            // 1. Формирование пути с кэш-бастером
-            const avatarPath = user.avatar_path || '/assets/default_avatar.png';
+
+            const avatarPath = user.avatar_path || '/assets/default_avatar.jpg';
             const avatarUrl = avatarPath + '?t=' + new Date().getTime(); 
 
-            // 2. Обновление аватара в боксе "Сменить фото" (IMG)
             const currentAvatar = document.getElementById('currentAvatar');
             if (currentAvatar) {
                 currentAvatar.src = avatarUrl;
             }
 
-            // 3. Обновление аватара в сайдбаре (DIV)
             const sidebarAvatar = document.getElementById('sidebarAvatar'); 
             if (sidebarAvatar) {
-                // ❗ Обязательно используем background-image
                 sidebarAvatar.style.backgroundImage = `url('${avatarUrl}')`;
             }
+
+            const mainMenuAvatar = document.getElementById('mainMenuAvatar'); 
+            if (mainMenuAvatar) {
+                mainMenuAvatar.style.backgroundImage = `url('${avatarUrl}')`;
+            }
             
-            // 4. Обновление текста (теперь с проверкой, чтобы избежать ошибки)
             const profileUsernameElement = document.getElementById('profileUsername');
             if (profileUsernameElement) {
                 profileUsernameElement.textContent = user.username;
@@ -1207,7 +1179,6 @@ async function loadProfileAndSetAvatar() {
             }
             
         } else if (response.status === 401) {
-            // Если сессия недействительна, перенаправляем на логин
             window.location.href = '/'; 
         } else {
             console.error("Ошибка загрузки профиля:", data.error);
@@ -1217,7 +1188,7 @@ async function loadProfileAndSetAvatar() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadProfileAndSetAvatar);
+// document.addEventListener('DOMContentLoaded', loadProfileAndSetAvatar);
 
 async function sendAdminMessage(e) {
     e.preventDefault();
@@ -1372,7 +1343,6 @@ async function showMessageModal(messageId) {
     }
 }
 
-
 function closeModal() {
     const modal = document.getElementById('messageModal');
     if (modal) {
@@ -1421,7 +1391,7 @@ async function deleteMessageHandler(messageId) {
 
 function handleResultsClick() {
     const contentArea = document.getElementById('contentArea');
-    contentArea.innerHTML = ''; // Очищаем контейнер
+    contentArea.innerHTML = '';
 
     if (window.userRole === 'teacher' || window.userRole === 'admin') {
         loadTeacherGradingInterface(); 
@@ -1434,23 +1404,19 @@ function handleResultsClick() {
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // --- 1. Загрузка профиля и роли ---
     try {
-        // ⬅️ ТЕПЕРЬ МЫ ЖДЕМ ЗАВЕРШЕНИЯ loadProfileAndSetAvatar
         await loadProfileAndSetAvatar(); 
         
     } catch (e) {
         console.error("Ошибка при загрузке профиля/роли:", e);
     }
     
-    switchProfileSection('personal-data'); // Эта строка теперь выполнится только после загрузки профиля
+    switchProfileSection('personal-data');
 
-    // --- 2. Привязка к меню "Results" ---
     const resultsLink = document.getElementById('resultsLink');
     if (resultsLink) {
         resultsLink.addEventListener('click', (e) => {
             e.preventDefault();
-            // На этом этапе window.userRole ГАРАНТИРОВАННО установлен.ы
             handleResultsClick(); 
         });
     }
@@ -1562,14 +1528,11 @@ function switchProfileSection(sectionId) {
     const adminMessageSection = document.getElementById('view-messages-section'); 
         
         if (adminMessageSection) {
-            console.log("DEBUG: Вызов loadAdminMessages для 'view-messages'"); // Оставьте отладку!
+            console.log("DEBUG: Вызов loadAdminMessages для 'view-messages'");
             loadAdminMessages();
         }
     }
 }
-
-
-//Рендер картов курса
 
 function renderResultCard(item) {
     let gradeColor = '#27ae60'; // A
@@ -1627,7 +1590,6 @@ async function loadResultsOverview() {
             return;
         }
 
-        // Рендеринг всех карточек
         let cardsHtml = '';
         resultsData.forEach(item => {
             cardsHtml += renderResultCard(item);
@@ -1673,7 +1635,6 @@ async function showCourseDetailsView(courseId, courseName) {
             return;
         }
 
-        //1. Создание структуры вкладок
         container.innerHTML = `
             <div class="tabs-container">
                 <div class="tabs-nav">
@@ -1691,11 +1652,9 @@ async function showCourseDetailsView(courseId, courseName) {
             </div>
         `;
         
-        // 2. Обработка данных и расчет сводки
         const allAssessments = [];
         Object.keys(groupedData).forEach(key => allAssessments.push(...groupedData[key]));
         
-        // Трансформация недельных данных в удобный формат (Неделя -> Практика/Лекция)
         const weeklyTransformedData = {};
         
         allAssessments.forEach(item => {
@@ -1716,16 +1675,13 @@ async function showCourseDetailsView(courseId, courseName) {
             }
         });
         
-        // Расчет общей сводки (самый важный расчет)
         const summary = calculateOverallSummary(allAssessments);
 
-        // --- 3. Отрисовка контента ---
         document.getElementById('tab-summary-content').innerHTML = renderSummaryTab(summary);
         document.getElementById('tab-weekly-content').innerHTML = renderWeeklyTable(weeklyTransformedData);
         document.getElementById('tab-srsp-content').innerHTML = renderStudentResultsTable(groupedData['СРСП'] || [], 'СРСП');
         document.getElementById('tab-final-content').innerHTML = renderStudentResultsTable(groupedData['Итоговые'] || [], 'Итоговые Оценки');
 
-        // --- 4. Привязка обработчиков клика для вкладок ---
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', function() {
                 activateTab(this.dataset.tab);
@@ -1800,7 +1756,6 @@ async function loadTeacherGradingInterface() {
     loadBtn.addEventListener('click', loadAssessmentTables);
 }
 
-/** Обновляет выпадающий список групп на основе выбранного курса. */
 function updateGroupSelect(courseSelect, groupSelect, loadBtn) {
     groupSelect.innerHTML = '';
     groupSelect.disabled = true;
@@ -1830,9 +1785,6 @@ function toggleLoadButton(groupSelect, loadBtn) {
 }
 
 
-/**
- * Загружает студентов и оценки с сервера и рендерит три таблицы.
- */
 async function loadAssessmentTables() {
     const courseId = document.getElementById('courseSelect').value;
     const groupName = document.getElementById('groupSelect').value;
@@ -1850,7 +1802,6 @@ async function loadAssessmentTables() {
         
         window.assessmentData = result.data;
         
-        // Рендеринг вкладок и таблиц
         renderGradingInterface(dataContainer, result.data);
 
     } catch (error) {
@@ -1859,9 +1810,6 @@ async function loadAssessmentTables() {
     }
 }
 
-/**
- * Учительский интерфейс: Загружает и отображает таблицу для выставления оценок.
- */
 async function showAssessmentTable(courseId, courseName, groupName) {
     document.getElementById('results-overview-container').style.display = 'none';
     
@@ -1890,16 +1838,13 @@ async function showAssessmentTable(courseId, courseName, groupName) {
             return;
         }
 
-        // 1. Генерация заголовков таблицы
         let headerHtml = assessments.map(a => `<th data-assessment-id="${a.id}" class="assessment-header">
             ${a.assessment_name} 
             <span class="weight-info">(${a.weight}%)</span>
         </th>`).join('');
 
-        // 2. Генерация строк таблицы (студенты)
         let bodyHtml = students.map(student => {
             let rowHtml = assessments.map(a => {
-                // Находим оценку для этого студента и этого типа оценки
                 const currentScore = student.scores[a.id] !== undefined ? student.scores[a.id] : '';
                 
                 return `
@@ -1923,7 +1868,6 @@ async function showAssessmentTable(courseId, courseName, groupName) {
             `;
         }).join('');
         
-        // 3.Финальная сборка
         container.innerHTML = `
             <div class="save-controls">
                 <button onclick="saveGrades(${courseId})" class="btn-save">Сохранить оценки</button>
@@ -1948,16 +1892,12 @@ async function showAssessmentTable(courseId, courseName, groupName) {
     }
 }
 
-/**
- * Рендерит вкладки (Недельные, СРСП, Итоговые) и таблицы с полями ввода.
- */
 function renderGradingInterface(container, data) {
     if (data.students.length === 0) {
         container.innerHTML = `<p class="no-results-message">В группе "${document.getElementById('groupSelect').value}" нет студентов.</p>`;
         return;
     }
     
-    // Группируем типы оценок по категории и подкатегории
     const groupedAssessments = data.assessments.reduce((acc, item) => {
         if (!acc[item.category]) acc[item.category] = {};
         if (!acc[item.category][item.subcategory]) acc[item.category][item.subcategory] = [];
@@ -1991,7 +1931,6 @@ function renderGradingInterface(container, data) {
     
     container.innerHTML = html;
     
-    // Привязка событий переключения вкладок
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', (e) => {
             const tabId = e.target.dataset.tab;
@@ -2003,25 +1942,19 @@ function renderGradingInterface(container, data) {
         });
     });
     
-    // Привязка формы сохранения
     document.getElementById('gradingForm').addEventListener('submit', saveGrades);
 }
 
-/**
- * Рендерит недельные оценки с разделением на Практику и Лекции.
- */
 function renderWeeklyAssessments(weeklyData, data) {
     if (!weeklyData) return '<p>Нет данных по недельным оценкам.</p>';
     
     let html = '';
     
-    // 1. Секция Практики
     if (weeklyData['Практика']) {
         html += '<h4>Практика (1-15 Неделя)</h4>';
         html += renderTeacherGradingTable(weeklyData['Практика'], data, 'weekly-practice');
     }
     
-    // 2. Секция Лекций
     if (weeklyData['Лекции']) {
         html += '<h4 style="margin-top: 20px;">Лекции (1-15 Неделя)</h4>';
         html += renderTeacherGradingTable(weeklyData['Лекции'], data, 'weekly-lectures');
@@ -2030,22 +1963,17 @@ function renderWeeklyAssessments(weeklyData, data) {
     return html;
 }
 
-/**
- * Рендерит общую таблицу для заданного набора оценок.
- */
 function renderTeacherGradingTable(assessments, data, tableId = '') {
     if (assessments.length === 0) return '<p>Нет типов оценок для этой категории.</p>';
     
     let tableHtml = `<div class="table-scroll"><table class="grading-table" id="${tableId}"><thead><tr><th>Студент</th>`;
     
-    // Заголовки столбцов
     assessments.forEach(ass => {
         tableHtml += `<th title="${ass.assessment_name}" data-assessment-id="${ass.id}">${ass.assessment_name.replace('Неделя ', 'Н').replace('Практика, ', '').replace('Лекция, ', '')}</th>`;
     });
     
     tableHtml += `</tr></thead><tbody>`;
     
-    // Строки с полями ввода
     data.students.forEach(student => {
         tableHtml += `<tr><td>${student.full_name}</td>`;
         
@@ -2088,11 +2016,9 @@ async function saveGrades(e) {
     const courseId = document.getElementById('courseSelect').value;
     const gradesToSave = [];
     
-    // Собираем данные из всех полей ввода на форме
     document.querySelectorAll('.grade-input').forEach(input => {
         const score = parseFloat(input.value);
         
-        // Сохраняем только те оценки, которые введены и находятся в допустимом диапазоне
         if (input.value !== '' && !isNaN(score) && score >= 0 && score <= 100) {
             gradesToSave.push({
                 student_id: parseInt(input.dataset.studentId),
@@ -2130,14 +2056,12 @@ async function saveGrades(e) {
     }
 }
 
-//Подробный просмотр оценок студентам
+
 
 function activateTab(tabId) {
-    // Снимаем класс 'active' со всех кнопок и панелей
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
 
-    // Добавляем класс 'active' на выбранную кнопку и панель
     const activeBtn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active');
@@ -2159,11 +2083,9 @@ function calculateOverallSummary(assessments) {
         if (weight > 0) {
             maxWeight += weight;
             
-            // Если балл проставлен (не NULL), рассчитываем вклад в итоговую оценку
             if (item.score !== null) {
                 const score = parseFloat(item.score) || 0;
                 
-                // Расчет: (Полученный балл / Макс. балл) * Вес
                 const earnedPoints = (score / maxScore) * weight;
                 totalEarnedWeight += earnedPoints;
             }
@@ -2206,16 +2128,13 @@ function renderWeeklyTable(data) {
             <tbody>
     `;
     
-    // Рисуем до 15 недель
     for (let i = 1; i <= 15; i++) {
         const weekData = data[i] || {};
         const p = weekData.practice;
         const l = weekData.lecture;
 
-        // Форматирование ячейки: "Балл / Макс. балл"
         const formatScore = (item) => {
             if (!item) return '—';
-            // Если score === null, значит оценка не проставлена
             return item.score !== null 
                 ? `<span class="score-value">${item.score}</span> / ${item.max_score}`
                 : `<span class="score-value not-set">—</span> / ${item.max_score}`;
@@ -2304,14 +2223,9 @@ function renderSummaryTab(summary) {
     `;
 }
 
-/**
- * Рендерит главную/приветственную страницу портала.
- * @param {Object} userData - Объект с данными авторизованного пользователя.
- */
 function renderHomePage(userData) {
     const container = document.getElementById('contentArea');
     
-    // Используем полные данные пользователя, если они есть
     const userName = userData.full_name || userData.username || 'Пользователь';
     const roleRu = {
         'student': 'Студент',
@@ -2354,18 +2268,11 @@ function renderHomePage(userData) {
         <div id="calendar"></div>
     `;
     
-    // ❗ ВЫЗОВ loadHomePageWidgets(userData); УДАЛЕН, так как виджеты удалены
-    
-    // Запускаем загрузку данных для календаря (это осталось)
     loadAcademicCalendar(); 
     
     setActiveMenu(document.getElementById('homeLink'));
 }
 
-/**
- * Управляет активным пунктом меню.
- * @param {HTMLElement} activeElement - Элемент меню, который нужно сделать активным.
- */
 function setActiveMenu(activeElement) {
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active-menu');
@@ -2376,7 +2283,6 @@ function setActiveMenu(activeElement) {
 }
 
 async function loadAcademicCalendar() {
-    // 1. Запрос данных с сервера
     const eventsRes = await fetch('/api/calendar/events');
     const result = await eventsRes.json();
     
@@ -2387,7 +2293,6 @@ async function loadAcademicCalendar() {
     
     const calendarEl = document.getElementById('calendar');
     
-    // ⭐ Проверка роли для включения редактирования
     const isAdmin = window.userData && window.userData.role === 'admin';
     
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -2396,32 +2301,26 @@ async function loadAcademicCalendar() {
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: isAdmin ? 'dayGridMonth,dayGridWeek,dayGridDay addButton' : 'dayGridMonth,dayGridWeek,dayGridDay' // Добавим кнопку "Добавить"
+            right: isAdmin ? 'dayGridMonth,dayGridWeek,dayGridDay addButton' : 'dayGridMonth,dayGridWeek,dayGridDay'
         },
         
-        // ⭐ НАСТРОЙКИ РЕДАКТИРОВАНИЯ (только для Админа)
-        editable: isAdmin,     // Возможность перетаскивать и изменять размер
-        selectable: isAdmin,   // Возможность выделять диапазон дат
+        editable: isAdmin,
+        selectable: isAdmin,
         
-        // Источник данных
         events: result.data, 
         eventDisplay: 'block', 
         eventColor: '#8b0000', 
+
         
-        // -----------------------------------------------------------
-        // ⭐ ОБРАБОТЧИКИ СОБЫТИЙ (ТОЛЬКО ДЛЯ АДМИНА)
-        // -----------------------------------------------------------
-        
-        // 1. Изменение событий (перетаскивание/изменение размера)
         eventDrop: async function(info) {
-            // Запрашиваем подтверждение перед сохранением
+
             if (!confirm(`Вы уверены, что хотите переместить событие "${info.event.title}"?`)) {
-                info.revert(); // Отменяем действие, если пользователь отказался
+                info.revert();
                 return;
             }
-            // Вызываем нашу функцию сохранения
+
             const success = await saveCalendarEvent(info.event, 'update');
-            if (!success) { info.revert(); } // Если ошибка, откатываем изменение
+            if (!success) { info.revert(); }
         },
 
         eventResize: async function(info) {
@@ -2433,7 +2332,6 @@ async function loadAcademicCalendar() {
             if (!success) { info.revert(); }
         },
         
-        // 2. Создание нового события (выделение диапазона)
         select: async function(info) {
             const title = prompt('Введите название нового события:');
             if (title) {
@@ -2441,45 +2339,34 @@ async function loadAcademicCalendar() {
                     title: title,
                     start: info.start,
                     end: info.end,
-                    backgroundColor: '#2ecc71', // Зеленый для новых
+                    backgroundColor: '#2ecc71',
                     id: null,
                     extendedProps: { description: '' }
                 };
                 
-                // Сохраняем событие и получаем новый ID
                 const newId = await saveCalendarEvent(newEvent, 'create');
                 
                 if (newId) {
                     newEvent.id = newId;
-                    calendar.addEvent(newEvent); // Добавляем событие в календарь только после успешного сохранения
+                    calendar.addEvent(newEvent);
                 }
             }
-            calendar.unselect(); // Сброс выделения
+            calendar.unselect();
         },
         
-        // 3. Редактирование существующего события по клику
+
         eventClick: function(info) {
             if (!isAdmin) return;
             handleEventClick(info.event, calendar);
         }
     });
 
-    // 3. Рендеринг календаря
+
     calendar.render();
     
-    // 4. Обновление виджетов
+
     updateNextEventWidget(result.data);
 }
-
-// function loadHomePageWidgets(userData) {
-//     // TODO: Здесь вы будете загружать реальные данные для курсов и сообщений
-//     
-//     // Заглушка: Мои курсы (Просто для демонстрации макета)
-//     document.getElementById('courseCount').textContent = '4'; // Используйте API, когда будет готова функция
-// 
-//     // Заглушка: Непрочитанные сообщения
-//     document.getElementById('unreadMessagesCount').textContent = '2'; // Используйте API, когда будет готова функция
-// }
 
 function updateNextEventWidget(events) {
     if (!events || events.length === 0) {
@@ -2490,7 +2377,6 @@ function updateNextEventWidget(events) {
     
     const today = new Date().toISOString().slice(0, 10);
     
-    // Находим ближайшее будущее событие
     const nextEvent = events.find(event => event.start >= today);
 
     if (nextEvent) {
@@ -2509,25 +2395,21 @@ function showToast(message, type = 'info') {
     const toast = document.getElementById('toastNotification');
     toast.textContent = message;
     
-    // Сброс всех классов и стилей
     toast.style.backgroundColor = '';
     
-    // Установка цвета в зависимости от типа
     if (type === 'success') {
-        toast.style.backgroundColor = '#2ecc71'; // Зеленый
+        toast.style.backgroundColor = '#2ecc71';
     } else if (type === 'error') {
-        toast.style.backgroundColor = '#e74c3c'; // Красный
+        toast.style.backgroundColor = '#e74c3c';
     } else if (type === 'info') {
-        toast.style.backgroundColor = '#3498db'; // Синий
+        toast.style.backgroundColor = '#3498db';
     } else {
-        toast.style.backgroundColor = '#333'; // Серый по умолчанию
+        toast.style.backgroundColor = '#333';
     }
 
-    // Показать уведомление
     toast.style.opacity = 1;
     toast.style.visibility = 'visible';
     
-    // Скрыть уведомление через 3 секунды
     setTimeout(function(){ 
         toast.style.opacity = 0;
         toast.style.visibility = 'hidden';
@@ -2535,19 +2417,17 @@ function showToast(message, type = 'info') {
 }
 
 
-// Новая функция для отправки изменений на сервер
 async function saveCalendarEvent(eventData, type) {
-    // Форматирование данных для отправки на сервер
+
     const dataToSend = {
-        id: eventData.id || null, // ID будет null для нового события
+        id: eventData.id || null,
         title: eventData.title,
-        start: eventData.start.toISOString().slice(0, 10), // Дата начала
-        end: eventData.end ? eventData.end.toISOString().slice(0, 10) : null, // Дата окончания
+        start: eventData.start.toISOString().slice(0, 10),
+        end: eventData.end ? eventData.end.toISOString().slice(0, 10) : null,
         color: eventData.backgroundColor || '#8b0000',
         description: eventData.extendedProps.description || ''
     };
     
-    // Всплывающее уведомление, что идет сохранение
     showToast(`Сохранение события: ${dataToSend.title}...`, 'info'); 
 
     try {
@@ -2561,7 +2441,6 @@ async function saveCalendarEvent(eventData, type) {
         if (result.success) {
             showToast(`Событие успешно ${dataToSend.id ? 'обновлено' : 'создано'}.`, 'success');
             
-            // Если событие новое, присваиваем ему ID, полученный от сервера
             if (type === 'create' && result.newId) {
                 return result.newId;
             }
@@ -2577,14 +2456,13 @@ async function saveCalendarEvent(eventData, type) {
     }
 }
     
-//  Функция обработки клика по событию
+
 function handleEventClick(event, calendar) {
     const action = prompt(`Событие: "${event.title}". Выберите действие:\n1. Редактировать (R)\n2. Удалить (D)\n3. Отмена (Cancel)`, 'R');
     
-    if (action === null) return; // Отмена
+    if (action === null) return;
 
     if (action.toUpperCase() === 'R') {
-        // Редактирование
         const newTitle = prompt('Новое название:', event.title);
         const newColor = prompt('Новый цвет (HEX, например, #3498db):', event.backgroundColor);
         
@@ -2592,24 +2470,23 @@ function handleEventClick(event, calendar) {
             event.setProp('title', newTitle);
             event.setProp('backgroundColor', newColor);
             
-            // Сохраняем обновленное событие
             saveCalendarEvent(event, 'update');
         }
         
     } else if (action.toUpperCase() === 'D') {
-        // Удаление
+
         if (confirm(`Вы уверены, что хотите удалить событие "${event.title}"?`)) {
-            deleteCalendarEvent(event.id, calendar, event); // Вызываем новую функцию удаления
+            deleteCalendarEvent(event.id, calendar, event);
         }
     }
 }
 
-// Новая функция для удаления
+
 async function deleteCalendarEvent(eventId, calendar, event) {
     showToast(`Удаление события ID ${eventId}...`, 'info'); 
     
     try {
-        const response = await fetch('/api/admin/calendar/delete', { // Нужен новый маршрут!
+        const response = await fetch('/api/admin/calendar/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: eventId })
@@ -2617,7 +2494,7 @@ async function deleteCalendarEvent(eventId, calendar, event) {
         const result = await response.json();
 
         if (result.success) {
-            event.remove(); // Удаляем событие с календаря
+            event.remove();
             showToast('Событие успешно удалено.', 'success');
         } else {
             showToast(`Ошибка удаления: ${result.error}`, 'error');

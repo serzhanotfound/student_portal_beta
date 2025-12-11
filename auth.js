@@ -37,7 +37,7 @@ async function login(username, password, res) {
 
     const user = rows[0];
     const sessionId = generateSessionId();
-    const expires = new Date(Date.now() + 1000 * 60 * 60); //1 hour
+    const expires = new Date(Date.now() + 1000 * 60 * 60);
 
     await pool.query("INSERT INTO sessions (user_id, session_id, expires_at) VALUES (?, ?, ?)",
         [user.id, sessionId, expires]);
@@ -74,28 +74,18 @@ async function logout(sessionId, res) {
     }
 };
 
-/**
- * Сохраняет (или перезаписывает) расписание для конкретного учителя, группы и дня.
- * @param {number} teacherId - ID учителя, который создает расписание.
- * @param {string} groupName - Название группы (Логистика, Менеджмент и т.д.).
- * @param {string} dayOfWeek - День недели (Понедельник, Вторник и т.д.).
- * @param {Array<Object>} lessons - Массив объектов уроков: [{time_slot, course, classroom}, ...]
- * @returns {Object} Результат операции.
- */
 
 async function saveSchedule(teacherId, groupName, dayOfWeek, lessons) {
     let connection;
     try{
         connection = await pool.getConnection();
-        await connection.beginTransaction(); //Начинаем транзакцию для безопасности
+        await connection.beginTransaction();
 
-        // УДАЛЯЕМ старые записи для этой комбинаций ГРУППА + ДЕНЬ
         await connection.query(
             'DELETE FROM schedule WHERE group_name = ? AND day_of_week = ?',
             [groupName, dayOfWeek]
         );
 
-        // ВСТАВЛЯЕМ новые записи
         if (lessons && lessons.length > 0) {
             
             const values = lessons.map(lesson => [
@@ -109,7 +99,7 @@ async function saveSchedule(teacherId, groupName, dayOfWeek, lessons) {
 
             await connection.query(
                 'INSERT INTO schedule (teacher_id, group_name, day_of_week, time_slot, course, classroom) VALUES ?',
-                [values] // MySQL автоматом обрабатывает массив массивов для ВАЛЮС
+                [values]
             );
         }
         
@@ -145,7 +135,6 @@ async function getSchedule(groupName, dayOfWeek = null) {
         `;
          let params = [groupName];
         
-        // ДОБАВЛЯЕМ ФИЛЬТР ПО ДНЮ, ЕСЛИ ОН ПЕРЕДАН
         if (dayOfWeek) {
             query += ` AND s.day_of_week = ?`;
             params.push(dayOfWeek);
@@ -157,7 +146,7 @@ async function getSchedule(groupName, dayOfWeek = null) {
                 s.time_slot
              `;
 
-        const [rows] = await pool.query(query, params); // <-- ИСПОЛЬЗУЕМ НОВЫЙ МАССИВ ПАРАМЕТРОВ
+        const [rows] = await pool.query(query, params);
 
      return rows;
     } catch (error) {
@@ -183,7 +172,7 @@ async function getStudentCourses(groupName, semester) {
             WHERE 
                 c.group_name = ? AND c.semester = ?; 
         `;
-        const [rows] = await pool.query(query, [groupName, semester]); // Используем оба параметра
+        const [rows] = await pool.query(query, [groupName, semester]);
         return rows;
     } catch (error) {
         throw error;
@@ -233,16 +222,12 @@ async function getAllCourses() {
     }
 }
 
-/**
- * Жана курс косады н\е бар курсты жанартады.
- * Жана курс косылганда, бага турлеринин стандартты шаблонын жасайды.
- */
+
 async function saveCourse(courseData) {
     const { id, name, description, credits, teacher_id, group_name, semester } = courseData;
 
     try {
         if (id) {
-            // Обновление существующего курса
             const query = `
                 UPDATE courses 
                 SET name = ?, description = ?, credits = ?, teacher_id = ?, group_name = ?, semester = ?
@@ -252,7 +237,6 @@ async function saveCourse(courseData) {
             return { success: true };
 
         } else {
-            // Добавление нового курса
             const insertCourseQuery = `
                 INSERT INTO courses (name, description, credits, teacher_id, group_name, semester) 
                 VALUES (?, ?, ?, ?, ?, ?);
@@ -262,11 +246,9 @@ async function saveCourse(courseData) {
             
             const newCourseId = result.insertId;
             
-            // *** НОВЫЙ ШАГ: Вызываем функцию создания шаблона оценок ***
             if (newCourseId) {
                 await createDefaultAssessmentSchema(newCourseId);
             }
-            // ******************************************************
             
             return { success: true };
         }
@@ -306,7 +288,6 @@ async function getUserProfileData(userId) {
             WHERE 
                 id = ?;
         `;
-        // ✅ Комментарии на кириллице лучше оставлять снаружи, в JS-коде, а не в самой SQL-строке
         const [rows] = await pool.query(query, [userId]); 
         
         return rows[0] || null; 
@@ -475,12 +456,7 @@ async function deleteMessage(messageId) {
     }
 }
 
-/**
- * @param {number} userId - ID текущего студента.
- * @param {string} groupName - Название группы студента (из таблицы users).
- * @param {string} [semesterCode] - Код текущего семестра (опционально для фильтрации).
- * @returns {Array<Object>} Массив объектов с данными по курсам и оценкам.
- */
+
 async function getStudentResultsOverview(userId, groupName, semesterCode = null) {
     if (!userId || !groupName) return [];
 
@@ -508,21 +484,17 @@ async function getStudentResultsOverview(userId, groupName, semesterCode = null)
         
         let params = [userId, groupName];
         if (semesterCode) {
-             // Если передан семестр, добавляем его в параметры запроса
             params.push(semesterCode);
         }
 
-        // Используем деструктуризацию для получения массива строк (rows)
         const [rows] = await pool.query(query, params); 
         
-        // Преобразуем final_score в более удобный формат, если нужно
         return rows.map(row => ({
             courseId: row.course_id,
             title: row.course_name,
             teacherName: row.teacher_name,
-            // Если final_score null (студент еще не получил оценку), ставим 'N/A'
             currentRating: row.final_score !== null ? `${parseFloat(row.final_score).toFixed(2)}%` : 'Нет данных',
-            letterGrade: row.letter_grade || '-' // Если оценка null, ставим прочерк
+            letterGrade: row.letter_grade || '-'
         }));
 
     } catch (error) {
@@ -531,19 +503,14 @@ async function getStudentResultsOverview(userId, groupName, semesterCode = null)
     }
 }
 
-/**
- * 15 Практика (15*1%), 15 Лекции (15*1%), 4 СРСП (4*5%), 1-РК (20%), 2-РК (20%), Сессия (10%).
- * Общий вес: 100%.
- * @param {number} courseId
- */
+
 async function createDefaultAssessmentSchema(courseId) {
     const defaultAssessments = [];
     const maxScore = 100;
 
-    // Недельные оценки (Практика и Лекции)
-    const weeklyWeight = 1.00; // 1%
+    const weeklyWeight = 1.00;
     for (let i = 1; i <= 15; i++) {
-        // Практика
+
         defaultAssessments.push({
             name: `Практика, Неделя ${i}`,
             category: 'Недельные',
@@ -551,7 +518,7 @@ async function createDefaultAssessmentSchema(courseId) {
             weight: weeklyWeight,
             max_score: maxScore
         });
-        // Лекции
+
         defaultAssessments.push({
             name: `Лекция, Неделя ${i}`,
             category: 'Недельные',
@@ -561,7 +528,7 @@ async function createDefaultAssessmentSchema(courseId) {
         });
     }
 
-    // СРСП
+
     const srspWeight = 5.00; // 5%
     for (let i = 1; i <= 4; i++) {
         defaultAssessments.push({
@@ -573,7 +540,7 @@ async function createDefaultAssessmentSchema(courseId) {
         });
     }
 
-    // Итоговые оценки (РК и Сессия)
+
     defaultAssessments.push({ name: '1-РК', category: 'Итоговые', subcategory: '1-РК', weight: 20.00, max_score: maxScore });
     defaultAssessments.push({ name: '2-РК', category: 'Итоговые', subcategory: '2-РК', weight: 20.00, max_score: maxScore });
     defaultAssessments.push({ name: 'Сессия', category: 'Итоговые', subcategory: 'Сессия', weight: 10.00, max_score: maxScore });
@@ -603,10 +570,7 @@ async function createDefaultAssessmentSchema(courseId) {
     }
 }
 
-/**
- * Получает список уникальных курсов и групп, которые ведет преподаватель.
- * @param {number} teacherId
- */
+
 async function getTeacherCoursesAndGroups(teacherId) {
     try {
         const query = `
@@ -624,7 +588,6 @@ async function getTeacherCoursesAndGroups(teacherId) {
         
         const [rows] = await pool.query(query, [teacherId]);
 
-        // Логика группировки для клиента
         const coursesMap = {};
         rows.forEach(row => {
             if (!coursesMap[row.course_id]) {
@@ -651,14 +614,8 @@ async function getTeacherCoursesAndGroups(teacherId) {
     }
 }
 
-/**
- * Получает список студентов в группе, все типы оценок по курсу и уже проставленные баллы.
- * @param {number} courseId
- * @param {string} groupName
- */
 async function getAssessmentTableData(courseId, groupName) {
     try {
-        // 1. Получаем список студентов в нужной группе
         const studentsQuery = `
             SELECT 
                 id AS student_id, 
@@ -673,7 +630,6 @@ async function getAssessmentTableData(courseId, groupName) {
         `;
         const [students] = await pool.query(studentsQuery, [groupName]);
 
-        // 2. Получаем все типы оценок для этого курса
         const assessmentsQuery = `
             SELECT 
                 id, 
@@ -689,7 +645,6 @@ async function getAssessmentTableData(courseId, groupName) {
         `;
         const [assessments] = await pool.query(assessmentsQuery, [courseId]);
 
-        // 3. Получаем все существующие оценки для этих студентов
         const gradesQuery = `
             SELECT 
                 student_id, 
@@ -704,7 +659,6 @@ async function getAssessmentTableData(courseId, groupName) {
         const studentIds = students.map(s => s.student_id);
         const [gradesRows] = await pool.query(gradesQuery, [courseId, studentIds]);
 
-        // Преобразуем оценки в удобный Map
         const gradesMap = {};
         gradesRows.forEach(row => {
             const studentId = row.student_id;
@@ -730,16 +684,12 @@ async function getAssessmentTableData(courseId, groupName) {
 }
 
 
-/**
- * Сохраняет (обновляет или вставляет) массив оценок, проставленных преподавателем.
- */
 async function saveAssessments(assessments) {
     if (!assessments || assessments.length === 0) {
         return { success: false, error: "Нет данных для сохранения." };
     }
 
     try {
-        // Используем INSERT ... ON DUPLICATE KEY UPDATE для UPSERT (Обновить или Вставить)
         const upsertQuery = `
             INSERT INTO student_assessments 
             (student_id, assessment_type_id, course_id, score)
@@ -758,18 +708,28 @@ async function saveAssessments(assessments) {
             ]);
         }));
 
-        return { success: true, message: `Успешно сохранено ${assessments.length} оценок.` };
+        const uniqueUpdates = new Set();
+        assessments.forEach(item => {
+            uniqueUpdates.add(`${item.student_id}-${item.course_id}`);
+        });
+
+        await Promise.all(Array.from(uniqueUpdates).map(async (pair) => {
+            const [studentId, courseId] = pair.split('-').map(Number);
+             
+            const summary = await calculateSummaryForStudent(studentId, courseId); 
+            
+            await updateStudentFinalGrade(studentId, courseId, summary.finalPercent, summary.letterGrade); 
+        }));
+        
+
+        return { success: true, message: `Успешно сохранено ${assessments.length} оценок и обновлено ${uniqueUpdates.size} итоговых оценок.` };
 
     } catch (error) {
-        console.error("DB Error in saveAssessments:", error);
-        return { success: false, error: "Ошибка базы данных при сохранении оценок." };
+        console.error("DB Error in saveAssessments and post-processing:", error);
+        return { success: false, error: "Ошибка базы данных при сохранении оценок и/или перерасчете итоговой оценки." };
     }
 }
 
-/**
- * Получает все оценки студента по конкретному курсу, включая вес и категории.
- * Использует LEFT JOIN, чтобы показать оценку (или NULL, если не проставлена).
- */
 async function getStudentAssessmentDetails(studentId, courseId) {
     try {
         const query = `
@@ -791,15 +751,14 @@ async function getStudentAssessmentDetails(studentId, courseId) {
                 at.category, at.assessment_name;
         `;
         
-        // pool.query должен быть определен в вашем файле auth.js
+
         const [results] = await pool.query(query, [studentId, courseId]);
         
         if (results.length === 0) {
-            // Возвращаем пустой массив, если нет шаблонов оценок
+
             return { success: true, data: [] }; 
         }
 
-        // Группируем данные по категориям для удобства на клиенте
         const groupedData = {};
         results.forEach(item => {
             const category = item.category;
@@ -817,10 +776,6 @@ async function getStudentAssessmentDetails(studentId, courseId) {
     }
 }
 
-/**
- * Получает список всех курсов и всех групп для роли Администратора.
- * Возвращает данные в формате, ожидаемом клиентской частью.
- */
 async function getAllCoursesAndGroupsForAdmin() {
     try {
         const query = `
@@ -837,13 +792,13 @@ async function getAllCoursesAndGroupsForAdmin() {
 
         const coursesMap = {};
 
-        // Группировка курсов и сбор уникальных групп
+
         rows.forEach(row => {
             if (!coursesMap[row.id]) {
                 coursesMap[row.id] = {
                     course_id: row.id,
                     course_name: row.name,
-                    groups: new Set() // Используем Set для уникальности
+                    groups: new Set()
                 };
             }
             if (row.group_name) {
@@ -851,7 +806,6 @@ async function getAllCoursesAndGroupsForAdmin() {
             }
         });
 
-        // Преобразование Set в Array и формирование финальной структуры
         const result = Object.values(coursesMap).map(course => ({
             course_id: course.course_id,
             course_name: course.course_name,
@@ -883,18 +837,13 @@ async function getAcademicEvents() {
                 start_date;
         `;
         
-        // ВАЖНО: Мы переименовываем поля в 'start' и 'end',
-        // чтобы они сразу соответствовали формату, который ждет FullCalendar!
         
         const [events] = await pool.query(query);
         
-        // Если end_date установлен в базе как NULL, FullCalendar может быть недоволен.
-        // Очистим его здесь, если он не установлен.
         const formattedEvents = events.map(event => ({
             id: event.id,
             title: event.title,
             start: event.start,
-            // Если end_date существует, мы его возвращаем, иначе null
             end: event.end ? event.end : null,
             color: event.color,
             description: event.description 
@@ -948,3 +897,81 @@ async function deleteAcademicEvent(id) {
     }
 }
 
+
+async function calculateSummaryForStudent(studentId, courseId) {
+
+    const query = `
+        SELECT 
+            at.weight,
+            at.max_score,
+            sa.score
+        FROM 
+            assessment_types at 
+        LEFT JOIN 
+            student_assessments sa 
+            ON at.id = sa.assessment_type_id AND sa.student_id = ?
+        WHERE 
+            at.course_id = ?;
+    `;
+    
+
+    const [assessments] = await pool.query(query, [studentId, courseId]);
+    
+    
+    let totalEarnedWeight = 0; 
+    let maxWeight = 0;         
+    
+    if (assessments.length === 0) {
+        return { finalPercent: 0, letterGrade: '-' };
+    }
+
+    assessments.forEach(item => {
+        const weight = parseFloat(item.weight) || 0;
+        const maxScore = parseFloat(item.max_score) || 1; 
+
+        if (weight > 0) {
+            maxWeight += weight;
+            
+            if (item.score !== null) {
+                const score = parseFloat(item.score) || 0;
+                
+                const earnedPoints = (score / maxScore) * weight;
+                totalEarnedWeight += earnedPoints;
+            }
+        }
+    });
+
+    const finalPercent = maxWeight > 0 ? (totalEarnedWeight / maxWeight) * 100 : 0;
+
+    const getLetterGrade = (percent) => {
+        if (percent >= 90) return 'A';
+        if (percent >= 80) return 'B';
+        if (percent >= 70) return 'C';
+        if (percent >= 60) return 'D';
+        return 'F';
+    };
+
+   return {
+        finalPercent: parseFloat(finalPercent.toFixed(2)), 
+        letterGrade: getLetterGrade(finalPercent)
+    };
+}
+
+async function updateStudentFinalGrade(studentId, courseId, finalPercent, letterGrade) {
+    
+    const upsertQuery = `
+        INSERT INTO student_grades 
+        (user_id, course_id, final_score, letter_grade)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        final_score = VALUES(final_score),
+        letter_grade = VALUES(letter_grade);
+    `;
+    
+    await pool.query(upsertQuery, [
+        studentId, 
+        courseId, 
+        finalPercent, 
+        letterGrade
+    ]);
+}

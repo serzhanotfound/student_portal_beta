@@ -27,23 +27,18 @@ async function parseRequestBody(req) {
     return new Promise((resolve, reject) => {
         let body = '';
         
-        // 1. Сбор данных по частям
         req.on('data', chunk => {
             body += chunk.toString(); 
         });
 
-        // 2. Парсинг после завершения сбора
         req.on('end', () => {
             if (body) {
                 try {
-                    // Пытаемся распарсить JSON
                     resolve(JSON.parse(body));
                 } catch (error) {
-                    // Если не JSON, возвращаем ошибку
                     reject(new Error('Invalid JSON in request body'));
                 }
             } else {
-                // Если тело пустое
                 resolve({});
             }
         });
@@ -66,7 +61,6 @@ http.createServer(async (req, res) => {
                      pathname.startsWith('/uploads/');
 
     if (isStatic) {
-        // Указываем, что все файлы находятся в папке 'public'
         const filePath = path.join(__dirname, "public", pathname);
         const ext = path.extname(filePath);
         
@@ -124,21 +118,19 @@ else if (req.method === "POST" && pathname === "/api/save_schedule") {
     const user = await checkSession(sessionId);
 
     if (!user || user.role !== 'teacher') {
-        res.writeHead(403); //Forbidden
+        res.writeHead(403);
         res.end(JSON.stringify({success: false, error: "Доступ запрещен. Только для учителей."}))
         return;
     }
 
-    //СБОР ТЕЛА ЗАПРОСА
     let body = "";
     req.on("data", chunk => body += chunk);
     req.on("end", async () => {
         try{
             const data = JSON.parse(body);
 
-            // data должен содержать:groupName, daOfWeek, lessons
             const result = await saveSchedule(
-                user.id, // Используем АЙДИ учителя для привязки расписания
+                user.id,
                 data.groupName,
                 data.dayOfWeek,
                 data.lessons
@@ -173,7 +165,6 @@ else if (req.method === "POST" && pathname === "/api/save_course") {
     req.on("end", async () => {
         try {
             const data = JSON.parse(body);
-            // data содержит: id (опционально), name, description, credits, teacher_id
             
             const result = await saveCourse(data.id, data.name, data.description, data.credits, data.teacher_id,  data.group_name, data.semester); 
 
@@ -205,7 +196,6 @@ else if (req.method === "POST" && pathname === "/api/delete_course") {
     req.on("end", async () => {
         try {
             const data = JSON.parse(body);
-            // data содержит: id
             
             const result = await deleteCourse(data.id); 
 
@@ -235,7 +225,7 @@ else if (req.method === "POST" && pathname === "/api/upload_avatar") {
     const form = new Formidable({ 
         uploadDir: UPLOAD_DIR,
         keepExtensions: true,
-        maxFileSize: 5 * 1024 * 1024, // 5 МБ
+        maxFileSize: 5 * 1024 * 1024,
     });
 
     form.parse(req, async (err, fields, files) => {
@@ -257,18 +247,15 @@ else if (req.method === "POST" && pathname === "/api/upload_avatar") {
         const fileExt = path.extname(avatarFile.originalFilename).toLowerCase();
         
         if (!allowedExtensions.includes(fileExt)) {
-            // Удаляем некорректный файл
             fs.unlinkSync(avatarFile.filepath); 
             res.writeHead(400);
             res.end(JSON.stringify({ success: false, error: "Недопустимый формат файла. Разрешены только PNG/JPG." }));
             return;
         }
 
-        // 1. Создаем новое имя файла, используя ID пользователя
         const newFileName = `${user.id}_avatar${fileExt}`;
         const newFilePath = path.join(UPLOAD_DIR, newFileName);
         
-        // 2. Переименовываем/перемещаем файл
         fs.rename(avatarFile.filepath, newFilePath, async (renameErr) => {
             if (renameErr) {
                 console.error("File rename error:", renameErr);
@@ -277,17 +264,13 @@ else if (req.method === "POST" && pathname === "/api/upload_avatar") {
                 return;
             }
 
-            // 3. Сохраняем путь в БД
            const publicPath = `/uploads/avatars/${newFileName}`;
-           // updateAvatarPath возвращает true/false
-           const isPathSaved = await updateAvatarPath(user.id, publicPath); 
+           const result = await updateAvatarPath(user.id, publicPath); 
            
-           // ❗ Изменение здесь: проверяем, что isPathSaved (булево) равно true
-           if (isPathSaved) { 
+           if (result.success) { 
                res.writeHead(200, { 'Content-Type': 'application/json' });
                res.end(JSON.stringify({ success: true, filePath: publicPath }));
            } else {
-               // Это произойдет, если запрос к БД прошел, но не обновил ни одной строки (например, user.id не найден)
                res.writeHead(500);
                res.end(JSON.stringify({ success: false, error: "Ошибка БД: Не удалось обновить путь к аватару. Пользователь не найден." }));
            }
@@ -347,7 +330,6 @@ else if (req.method === "POST" && pathname === "/api/delete_message") {
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
 
-    // 1. ПРОВЕРКА АВТОРИЗАЦИИ И РОЛИ
     if (!user || user.role !== 'admin') { 
         res.writeHead(403, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ success: false, error: "Доступ запрещен. Только для Администратора." }));
@@ -358,14 +340,13 @@ else if (req.method === "POST" && pathname === "/api/delete_message") {
 
     req.on('end', async () => {
         try {
-            const { id } = JSON.parse(body); // Получаем ID из тела запроса
+            const { id } = JSON.parse(body);
 
             if (!id) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 return res.end(JSON.stringify({ success: false, error: "Отсутствует ID сообщения." }));
             }
             
-            // 2. УДАЛЕНИЕ В БД
             const result = await deleteMessage(id); 
             
             if (result.success) {
@@ -389,7 +370,6 @@ else if (req.method === "POST" && pathname === "/api/change_password") {
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
 
-    // 1. Проверка авторизации
     if (!user) {
         res.writeHead(401);
         res.end(JSON.stringify({ success: false, error: "Неавторизованный доступ." }));
@@ -402,7 +382,7 @@ else if (req.method === "POST" && pathname === "/api/change_password") {
     req.on('end', async () => {
         try {
             const data = JSON.parse(body);
-            const { currentPassword, newPassword } = data; // Получаем пароли из тела запроса
+            const { currentPassword, newPassword } = data;
 
             if (!currentPassword || !newPassword) {
                 res.writeHead(400);
@@ -410,14 +390,12 @@ else if (req.method === "POST" && pathname === "/api/change_password") {
                 return;
             }
             
-            // 2. Вызываем логику смены пароля из auth.js
             const result = await changeUserPassword(user.id, currentPassword, newPassword);
 
             if (result.success) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true }));
             } else {
-                // Возвращаем ошибку, например, "Неверный текущий пароль"
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: false, error: result.error }));
             }
@@ -473,16 +451,14 @@ else if (req.method === 'POST' && pathname === '/api/teacher/save_assessments') 
 else if (req.method === 'POST' && pathname === '/api/admin/calendar/save') {
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
-    
-    // 1. СТРОГАЯ ПРОВЕРКА РОЛИ: ТОЛЬКО АДМИН
+
     if (!user || user.role !== 'admin') {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Доступ запрещен. Требуются права Администратора.' }));
         return;
     }
 
-    // 2. Парсинг тела запроса (предполагаем, что у вас есть функция для этого)
-    let body = await parseRequestBody(req); // Используйте вашу функцию парсинга
+    let body = await parseRequestBody(req);
     
     try {
         const result = await saveAcademicEvent(body); 
@@ -508,7 +484,7 @@ else if (req.method === 'POST' && pathname === '/api/admin/calendar/delete') {
         return;
     }
 
-    let body = await parseRequestBody(req); // Используйте вашу функцию парсинга
+    let body = await parseRequestBody(req);
 
     try {
         const result = await deleteAcademicEvent(body.id);
@@ -521,19 +497,19 @@ else if (req.method === 'POST' && pathname === '/api/admin/calendar/delete') {
     }
     return;
 }
+
 //--------------------------POST---------------------------------
+
 else if (req.method === "GET" && pathname === "/") {
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
 
     if (user) {
-        // Пользователь авторизован -> Перенаправляем на /dashboard
         res.writeHead(302, { 'Location': '/dashboard' });
         res.end();
         return;
     } else {
-        // Пользователь не авторизован -> Отдаем страницу входа (login.html)
         const filePath = path.join(__dirname, "public", "index.html");
         if (fs.existsSync(filePath)) {
             res.writeHead(200, { "Content-Type": "text/html" });
@@ -555,7 +531,6 @@ else if(req.method === "GET" && pathname === "/api/get_schedule") {
         return;
     }
 
-    //Определение группы
     let groupName;
     let dayOfWeek = parsedUrl.query.day;
     
@@ -563,9 +538,6 @@ else if(req.method === "GET" && pathname === "/api/get_schedule") {
         groupName = user.group_name;
 
     } else if(user.role === 'teacher' || user.role === 'admin') {
-        // Учитель может посматривать любую группу, которую он выберет.
-        // Для простоты, здесь мы будем запрашивать группу из URL-параметров.
-        // /api/get_schedule?group=Логистика
         groupName = parsedUrl.query.group;
     } else {
         res.writeHead(403);
@@ -573,7 +545,6 @@ else if(req.method === "GET" && pathname === "/api/get_schedule") {
         return;
     }
 
-    // Получение данных
     const scheduleData = await getSchedule(groupName, dayOfWeek);
 
     if(scheduleData) {
@@ -633,7 +604,6 @@ else if (req.method === "GET" && pathname === "/profile") {
 }
 
 else if (req.method === "GET" && pathname === "/api/get_courses") {
-    // Проверка сессии
     const cookies = cookie.parse(req.headers.cookie || '');
     const sessionId = cookies.session;
     const user = await checkSession(sessionId);
@@ -649,7 +619,6 @@ else if (req.method === "GET" && pathname === "/api/get_courses") {
         let coursesData;
         let semester = parsedUrl.query.semester;
 
-        // 2. Логика по ролям
         if (user.role === 'student') {
             
              if (!semester) semester = 1; 
@@ -682,14 +651,12 @@ else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_da
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
     
-    // 1. Проверка авторизации
     if (!user) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
         return;
     }
     
-    // ⭐ 2. Проверка роли (разрешаем Admin И Teacher)
     if (user.role !== 'teacher' && user.role !== 'admin') {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Доступ запрещен.' }));
@@ -697,7 +664,6 @@ else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_da
     }
 
     const parts = pathname.split('/');
-    // Проверьте индексы! Если маршрут /api/teacher/assessment_data/123/GroupA, то CourseID=4, GroupName=5
     const courseId = parseInt(parts[4]); 
     const groupName = parts[5] ? decodeURIComponent(parts[5]) : null; 
 
@@ -708,7 +674,6 @@ else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_da
     }
 
     try {
-        // Вызываем функцию БД, которая не зависит от teacherId (см. Шаг 2)
         const result = await getAssessmentTableData(courseId, groupName); 
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -722,37 +687,33 @@ else if (req.method === 'GET' && pathname.startsWith('/api/teacher/assessment_da
     return;
 }
 
-else if (req.method === 'GET' && pathname === '/api/teacher/courses') { 
+else if (req.method === 'GET' && pathname === '/api/teacher/courses') {
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
 
     let result;
     
-    // 1. Проверка авторизации
     if (!user) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
         return;
     }
 
-    // 2. Логика для Администратора: загрузить ВСЕ курсы
     if (user.role === 'admin') {
-        // Мы вызываем новую функцию, созданную на Шаге 1
         result = await getAllCoursesAndGroupsForAdmin(); 
     } 
-    // 3. Логика для Преподавателя: загрузить только его курсы
+
     else if (user.role === 'teacher') {
-        // Вызываем существующую функцию
         result = await getTeacherCoursesAndGroups(user.id);
     } 
-    // 4. Доступ запрещен для всех остальных ролей (Student)
+
     else {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Доступ запрещен. Требуется роль Преподавателя или Администратора.' }));
         return;
     }
 
-    // Отправка данных (единая точка выхода)
+
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(result));
     return;
@@ -868,7 +829,6 @@ else if (req.method === "GET" && pathname === "/api/get_profile_data") {
     }
 
     try {
-        // НОВАЯ ФУНКЦИЯ, см. auth.js
         const profileData = await getUserProfileData(user.id); 
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -950,7 +910,6 @@ else if (req.method === 'GET' && pathname === '/api/calendar/events') {
     const session = req.headers.cookie ? cookie.parse(req.headers.cookie).session : null;
     const user = await checkSession(session);
 
-    // 1. Проверка авторизации: доступен всем авторизованным
     if (!user) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Требуется авторизация.' }));
@@ -958,7 +917,6 @@ else if (req.method === 'GET' && pathname === '/api/calendar/events') {
     }
 
     try {
-        // 2. Вызываем функцию из auth.js
         const result = await getAcademicEvents();
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -976,7 +934,7 @@ else if (req.method === 'GET' && pathname === '/api/calendar/events') {
 
 else{
  // статика
-   let fileToLoad = pathname.substring(1); // Удаляем ведущий '/'
+   let fileToLoad = pathname.substring(1);
 
      if (fileToLoad === "") {
         fileToLoad = "index.html"; 
